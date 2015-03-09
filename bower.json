@@ -1,0 +1,23 @@
+{
+  "name": "classyxin",
+  "description": "Simple JavaScript classes and mixins library with auto inits and auto destructors",
+  "version": "0.0.1",
+  "main": "./src/classyxin.js",
+  "dist": "./dist/",
+  "license": "MIT",
+  "keywords": [
+    "classyxin",
+    "classes",
+    "mixins",
+    "classes and mixins"
+  ],
+  "authors": [
+    {
+      "name": "Dmitry Makhnev",
+      "email": "dmitry.ivshin@gmail.com"
+    }
+  ],
+  "devDependencies": {
+    "default-testing": "*"
+  }
+}
