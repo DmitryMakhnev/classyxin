@@ -4,12 +4,13 @@ var gulpWebpack = require('gulp-webpack');
 var webpackConfig = require('./webpack.config');
 var runSequence = require('gulp-run-sequence');
 var bowerConfig = require('./bower.json');
+var bump = require('gulp-bump');
 
 
-gulp.task('default', function (callback) {
+gulp.task('build', function (callback) {
     runSequence(
-        'build:test',
-        'build:dist'
+        'build.test',
+        ['build.dist', 'build.bump']
     );
 });
 
@@ -17,7 +18,7 @@ gulp.task('default', function (callback) {
 /**
  * Run test once and exit
  */
-gulp.task('build:test', function (done) {
+gulp.task('build.test', function (done) {
   karma.start({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true
@@ -25,11 +26,17 @@ gulp.task('build:test', function (done) {
 });
 
 
-gulp.task('build:dist', function () {
+gulp.task('build.dist', function () {
 
     return gulp.src(bowerConfig.main)
         .pipe(gulpWebpack(webpackConfig))
         .pipe(gulp.dest(bowerConfig.dist));
+});
+
+gulp.task('build.bump', function () {
+    return gulp.src(['./bower.json', './package.json'])
+        .pipe(bump())
+        .pipe(gulp.dest('./'));
 });
 
 

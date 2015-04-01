@@ -1,20 +1,102 @@
 var classyxin = require('classyxin');
 
+var Events = classyxin.createClass({
+    proto: {
+        _handlers: null,
+        _listeners: null,
+        init: function () {
+            var events = this;
+            events._handlers = [];
+            events._listeners = [];
+        },
+        on: function () {},
+        off: function () {},
+        fire: function () {}
+    }
+});
+
+var Signal = classyxin.createClass({
+    proto: {
+        _handlers: null,
+        _listeners: null,
+        init: function () {
+            var events = this;
+            events._handlers = [];
+            events._listeners = [];
+        },
+        on: function () {},
+        off: function () {},
+        fire: function () {}
+    }
+});
+
+
+var mixin = classyxin.createMixin({
+    wu: 'tang',
+    clan: 'true'
+});
+
+var DasClass = classyxin.createClass(
+    Events,
+    classyxin.configureParent(
+        Signal,
+        {
+            needInit: false
+        }
+    ),
+    mixin,
+    {
+        _handlers: null,
+        _listeners: null,
+        init: function () {
+            var events = this;
+            events._handlers = [];
+            events._listeners = [];
+        },
+        on: function () {},
+        off: function () {},
+        fire: function () {}
+    }
+);
+
+classyxin.instanceOf(DasClass, Signal);
+
+var DaasClass = {
+    parents: [Events, null, Signal, {}]
+};
+
+classyxin.instanceOf(DasClass, Signal);
+
 var disalabe = classyxin.createClass({
-    extends: [Events],
+    extends: [
+        Events
+    ],
     proto: {
         isDisabled: false,
-        node: null,
+        disalabe_node: null,
         initDisable: function (node) {
             var disalabe = this;
-            disalabe.node = node;
+            disalabe.disalabe_node = node;
             return disalabe;
 
+        },
+        destructor: function () {
+            var disalabe = this;
+            disalabe.disalabe_node = null;
         },
         setDisable: function (isDisabled) {
             var disalabe = this;
             if (isDisabled !== disalabe.isDisabled) {
                 disalabe.isDisabled = isDisabled;
+
+                if (disalabe.disalabe_node) {
+                    if (isDisabled) {
+                        disalabe.disalabe_node.setAttribute('disabled', 'disabled');
+                    } else {
+                        disalabe.disalabe_node.removeAttribute('disabled');
+                    }
+                }
+
                 disalabe.fire('disabled:change', isDisabled);
             }
         }
@@ -22,14 +104,25 @@ var disalabe = classyxin.createClass({
 });
 
 var focuable = classyxin.createClass({
-    extends: [Events],
+    extends: [
+        Events
+    ],
     proto: {
         isFocused: false,
-        node: null,
+        focusable_node: null,
         initFocus: function (node) {
             var focusable = this;
-            focusable.node = node;
+            focusable.focusable_node = node;
+            node.addEventListener('focus', focusable.handelEvent, false);
+            node.addEventListener('blur', focusable.handelEvent, false);
             return focusable;
+        },
+        destructor: function () {
+            var focusable = this,
+                node = focusable.focusable_node;
+            node.removeEventListener('focus', focusable.handelEvent, false);
+            node.removeEventListener('blur', focusable.handelEvent, false);
+            focusable.focusable_node = null;
         },
         handelEvent: function (e) {
             var focusable = this;
@@ -47,17 +140,77 @@ var focuable = classyxin.createClass({
     }
 });
 
+var pressable = classyxin.createClass({
+    extends: [
+        Events
+    ],
+    proto: {
+        isPressed: false,
+        pressable_node: null,
+        initPressable: function (node) {
+            var pressable = this;
+            pressable.pressable_node = node;
+            node.addEventListener('mousedown', pressable.handleEvent, false);
+            node.addEventListener('mouseup', pressable.handleEvent, false);
+        },
+        destructor: function () {
+            var pressable = this,
+                node = pressable.pressable_node;
+            node.removeEventListener('mousedown', pressable.handleEvent, false);
+            node.removeEventListener('mouseup', pressable.handleEvent, false);
+            pressable.pressable_node = null;
+        },
+        handleEvent: function (e) {
+            var pressable = this;
+            switch (e.type) {
+                case 'mousedown':
+                    pressable.isPressed = true;
+                    pressable.fire('press');
+                    break;
+                case 'mouseup':
+                    pressable.fire('unpress');
+                    if (pressable.isPressed) {
+                        pressable.fire('pressed', e);
+                        pressable.isPressed = false;
+                    }
+                    break;
+            }
+        }
+    }
+});
+
+//think about 2 and more same classes in 2 mix (merge by id? first is main!)
+
+//handleEvent можно заложить в массив (перекрытие?)
+
+//inits?
+
+function buttonPressed (e) {
+    var button = this;
+    if (button.basisAction) {
+        button.basisAction(e);
+    }
+}
+
 var button = classyxin.createClass({
-    extends: [disalabe, focuable],
+    extends: [disalabe, focuable, pressable],
     proto: {
         node: null,
         basisAction: null,
         initButton: function (node, action) {
             var button = this;
             button.node = node;
+            //im think is cool!
+            button.initPressable(node);
+            button.initDisable(node);
+            button.initFocus(node);
             if (action) {
                 button.basisAction = action;
             }
+            button.on('pressed', buttonPressed);
+        },
+        destructor: function () {
+
         },
         handleEvent: function (e) {
             var button = this;
@@ -70,22 +223,6 @@ var button = classyxin.createClass({
                     break;
             }
         }
-    }
-});
-
-
-var Events = classyxin.createClass({
-    proto: {
-        _handlers: null,
-        _listeners: null,
-        init: function () {
-            var events = this;
-            events._handlers = [];
-            events._listeners = [];
-        },
-        on: function () {},
-        off: function () {},
-        fire: function () {}
     }
 });
 
@@ -254,7 +391,7 @@ var LocalOperationHistoryStorage = classyxin.create({
 var operationHistoryList = new OperationsHistoryList();
 var localOperationHistoryStorage = new LocalOperationHistoryStorage();
 operationHistoryList.addRemoteListConfig({});
-operationHistoryList.bindReplicator(localOperationHistoryStorage); ???
+operationHistoryList.bindReplicator(localOperationHistoryStorage);
 
 
 

@@ -1,7 +1,4 @@
 var classyxin = require('classyxin');
-var classyxinDefaultTestingExports = require('default-testing').exports.classyxin;
-
-//TODO: [dmitry.makhnev] check hasMixin
 
 describe('classyxin tests', function () {
 
@@ -9,54 +6,84 @@ describe('classyxin tests', function () {
         expect(classyxin).toBeDefined();
     });
 
-    describe('indexParentsAndMixins', function () {
-        var indexParentsAndMixins = classyxinDefaultTestingExports.indexParentsAndMixins;
-
-        it('was exported', function () {
-            expect(indexParentsAndMixins).toBeDefined();
-        });
-
-        it('isFunction', function () {
-            expect(indexParentsAndMixins).toEqual(jasmine.any(Function));
-        });
-
-        var multiClassesTreeFixture = require('../fixtures/multiClassesTree.js');
-
-        it('fixture is define', function () {
-            expect(multiClassesTreeFixture).toBeDefined();
-        });
-
-        describe('correct work', function () {
-
-            indexParentsAndMixins(multiClassesTreeFixture);
-
-            it('has correct parents __classesIds', function () {
-                expect(multiClassesTreeFixture.__classesIds).toEqual([10, 8, 7, 6, 5, 4, 3, 2, 1, 22, 21, 9, 11, 12]);
-            });
-
-            it('has correct parents __mixinsIds', function () {
-                expect(multiClassesTreeFixture.__mixinsIds).toEqual([4, 8, 6, 7, 1, 2]);
-            });
-
-        });
-
-    });
-
     describe('classes', function () {
         
-        describe('createCommonConstructor', function () {
+        describe('createClassConstructor', function () {
 
             it('return function', function () {
-                var CommonConstructor = classyxin.createCommonConstructor();
-                expect(CommonConstructor).toEqual(jasmine.any(Function));
+                var ClassConstructor = classyxin.createClassConstructor();
+                expect(ClassConstructor).toEqual(jasmine.any(Function));
             });
 
-            it('create instance of CommonConstructor', function () {
-                var CommonConstructor = classyxin.createCommonConstructor();
-                var instance = new CommonConstructor();
+            it('create instance of ClassConstructor', function () {
+                var ClassConstructor = classyxin.createClassConstructor();
+                var instance = new ClassConstructor();
                 expect(instance).toEqual(jasmine.any(Object));
             });
 
+        });
+
+        describe('configureParent', function () {
+            var configuredParent;
+
+            var ClassConstructor = classyxin.createClassConstructor();
+            var settings = {
+                    needInit: false
+                };
+
+            it('has ParentConfigurator constructor', function () {
+                expect(classyxin.ParentConfigurator).toEqual(jasmine.any(Function));
+            });
+
+            it('created', function () {
+                configuredParent = classyxin.configureParent(
+                    ClassConstructor,
+                    settings
+                );
+            });
+
+            it('correct properties', function () {
+                expect(configuredParent.parent).toBe(ClassConstructor);
+                expect(configuredParent.settings).toBe(settings);
+            });
+
+            it('destructor works', function () {
+                configuredParent.destructor();
+            });
+
+            it('correct destruction', function () {
+                expect(configuredParent.parent).toBe(null);
+                expect(configuredParent.settings).toBe(null);
+            });
+
+        });
+        
+        describe('mixin', function () {
+            var mixin;
+
+            it('has Mixin constructor', function () {
+                expect(classyxin.Mixin).toEqual(jasmine.any(Function));
+            });
+
+            it('created', function () {
+                mixin = classyxin.createMixin({
+                    foo: 'bar',
+                    num: 1
+                });
+            });
+
+            it('correct base properties', function () {
+                expect(mixin.base.foo).toBe('bar');
+                expect(mixin.base.num).toBe(1);
+            });
+
+            it('destructor works', function () {
+                mixin.destructor();
+            });
+
+            it('correct destruction', function () {
+                expect(mixin.base).toBe(null);
+            });
         });
 
         describe('createClass', function () {
@@ -129,13 +156,13 @@ describe('classyxin tests', function () {
                 describe('Child', function () {
                     it('create', function () {
                         Child = classyxin.createClass(
+                            Parent,
                             {
                                 childProp: 0,
                                 init: function () {
                                     this.counter *= 3;
                                 }
-                            },
-                            Parent
+                            }
                         );
                         expect(Child).toEqual(jasmine.any(Function));
                     });
@@ -174,14 +201,17 @@ describe('classyxin tests', function () {
                 describe('SubChild', function () {
                     it('create', function () {
                         SubChild = classyxin.createClass(
+                            classyxin.configureParent(
+                                Child, {
+                                    needInit: false
+                                }
+                            ),
                             {
                                 subChildProp: 0,
                                 init: function () {
                                     this.counter -= 2;
                                 }
-                            },
-                            Child,
-                            false
+                            }
                         );
                         expect(Child).toEqual(jasmine.any(Function));
                     });
@@ -226,359 +256,53 @@ describe('classyxin tests', function () {
         
     });
 
-    var Events = classyxin.createMixin({
-        _listeners: null,
-        _handlers: null,
+    //var Events = classyxin.createMixin({
+    //    _listeners: null,
+    //    _handlers: null,
+    //
+    //    init: function () {
+    //        this._listeners = [];
+    //        this._handlers = [];
+    //    },
+    //
+    //    on: function () {},
+    //    off: function () {}
+    //});
+    //
+    //var List = classyxin.createMixin({
+    //    _list: null,
+    //
+    //    init: function () {
+    //        this._list = [];
+    //    },
+    //
+    //    push: function () {},
+    //    pop: function () {},
+    //    shift: function () {},
+    //    unsift: function () {}
+    //});
+    //
+    //var Observer = classyxin.createMixin({
+    //    model: null,
+    //
+    //    init: function (model) {
+    //        if (model) {
+    //            this.model = model;
+    //        }
+    //    },
+    //
+    //    bindModel: function (model) {
+    //        this.model = model;
+    //    },
+    //
+    //    onChange: function () {},
+    //    offChange: function () {}
+    //
+    //});
 
-        init: function () {
-            this._listeners = [];
-            this._handlers = [];
-        },
+    //TODO: [dmitry.makhnev] mixins tests
+    //TODO: [dmitry.makhnev] classes without auto inits and destructor tests
 
-        on: function () {},
-        off: function () {}
-    });
-
-    var List = classyxin.createMixin({
-        _list: null,
-
-        init: function () {
-            this._list = [];
-        },
-
-        push: function () {},
-        pop: function () {},
-        shift: function () {},
-        unsift: function () {}
-    });
-
-    var Observer = classyxin.createMixin({
-        model: null,
-
-        init: function (model) {
-            if (model) {
-                this.model = model;
-            }
-        },
-
-        bindModel: function (model) {
-            this.model = model;
-        },
-
-        onChange: function () {},
-        offChange: function () {}
-
-    });
-
-    describe('mixins', function () {
-
-        it('create Mix', function () {
-            var Mix = classyxin.createMix(
-                {
-                    type: '',
-                    init: function (model, type) {
-                        this.type = type;
-                    }
-                },
-                Events,
-                Observer,
-                List
-            );
-            expect(Mix).toEqual(jasmine.any(Function));
-            expect(Mix.prototype.__Constructor).toEqual(jasmine.any(Function));
-        });
-
-
-        function checkMix (mixInstance, needCheckMixProp) {
-            it('is object', function () {
-                expect(mixInstance).toEqual(jasmine.any(Object));
-            });
-
-            describe('correct properties', function () {
-
-                it('has Events properties', function () {
-                    expect(mixInstance._listeners).toEqual([]);
-                    expect(mixInstance._handlers).toEqual([]);
-                    expect(mixInstance.on).toEqual(jasmine.any(Function));
-                    expect(mixInstance.off).toEqual(jasmine.any(Function));
-                });
-
-                it('has Observer properties', function () {
-                    expect(mixInstance.model).toEqual(jasmine.any(Object));
-                    expect(mixInstance.bindModel).toEqual(jasmine.any(Function));
-                    expect(mixInstance.onChange).toEqual(jasmine.any(Function));
-                    expect(mixInstance.offChange).toEqual(jasmine.any(Function));
-                });
-
-                it('has List properties', function () {
-                    expect(mixInstance._list).toEqual([]);
-                    expect(mixInstance.push).toEqual(jasmine.any(Function));
-                    expect(mixInstance.pop).toEqual(jasmine.any(Function));
-                    expect(mixInstance.shift).toEqual(jasmine.any(Function));
-                    expect(mixInstance.unsift).toEqual(jasmine.any(Function));
-                });
-
-                if (needCheckMixProp !== false) {
-                    it('has Mix properties', function () {
-                        expect(mixInstance.type).toBeDefined();
-                    });
-                }
-
-            });
-
-            describe('correct init', function () {
-
-                it('Observer init', function () {
-                    expect(mixInstance.model.lib).toBe('classyxin');
-                });
-
-                if (needCheckMixProp !== false) {
-                    it('Mix init', function () {
-                        expect(mixInstance.type).toBe('default');
-                    });
-                }
-
-            });
-        }
-
-
-        describe('default mix', function () {
-            var Mix = classyxin.createMix(
-                {
-                    type: '',
-                    init: function (model, type) {
-                        this.type = type;
-                    }
-                },
-                Events,
-                Observer,
-                List
-            );
-
-            var mixInstance = new Mix(
-                {
-                    lib: 'classyxin'
-                },
-                'default'
-            );
-
-            checkMix(mixInstance);
-        });
-
-        describe('mix with array', function () {
-            var Mix = new classyxin.createMix(
-                {
-                    type: '',
-                    init: function (model, type) {
-                        this.type = type
-                    }
-                },
-                [Events, Observer, List]
-            );
-
-            var mixInstanceWithArray = new Mix(
-                {lib: 'classyxin'},
-                'default'
-            );
-            checkMix(mixInstanceWithArray);
-        });
-
-        describe('mix instance without prototype object', function () {
-            var Mix = new classyxin.createMix(
-                null,
-                [Events, Observer, List]
-            );
-            var mixInstanceWithoutPrototypeObject = new Mix(
-                {lib: 'classyxin'}
-            );
-            checkMix(mixInstanceWithoutPrototypeObject, false);
-        });
-
-        describe('create mix instance with array only', function () {
-            var Mix = new classyxin.createMix(
-                [Events, Observer, List]
-            );
-            var mixInstanceWithArrayOnly = new Mix(
-                {lib: 'classyxin'}
-            );
-            checkMix(mixInstanceWithArrayOnly, false);
-        });
-
-    });
-    
-    describe('createMix with deep chains of classes', function () {
-        var Parent = classyxin.createClass({
-                counter: 0,
-                parentProp: 'parent',
-                init: function () {
-                    this.counter += 1;
-                }
-            });
-
-        var Child = classyxin.createClass(
-                {
-                    childProp: 'child',
-                    init: function () {
-                        this.counter *= 100;
-                    }
-                },
-                Parent
-            );
-
-        var SubChild = classyxin.createClass(
-                {
-                    subChildProp: 'subChild',
-                    init: function () {
-                        this.counter -= 2;
-                    }
-                },
-                Child,
-                false
-            );
-
-        var Mix = classyxin.createMix(
-            {
-                mixProp: 'mix',
-                type: '',
-                init: function (model, type) {
-                    this.counter *= 2;
-                    this.type = type;
-                }
-            },
-            Events,
-            Observer,
-            List
-        );
-
-        var MixWithMixesAndNestedClasses;
-
-        it('create mix', function () {
-            MixWithMixesAndNestedClasses = classyxin.createMix(
-                {
-                    init: function () {
-                        this.counter += 4;
-                    }
-                },
-                SubChild,
-                Mix
-            );
-            expect(MixWithMixesAndNestedClasses).toEqual(jasmine.any(Function));
-        });
-
-        var mixInstance;
-        it('create instance of mix', function () {
-            mixInstance = new MixWithMixesAndNestedClasses(
-                {
-                    lib: 'classyxin'
-                },
-                'default'
-            );
-            expect(mixInstance).toEqual(jasmine.any(Object));
-        });
-
-        describe('correct properties', function () {
-
-            it('has Events properties', function () {
-                expect(mixInstance._listeners).toEqual([]);
-                expect(mixInstance._handlers).toEqual([]);
-                expect(mixInstance.on).toEqual(jasmine.any(Function));
-                expect(mixInstance.off).toEqual(jasmine.any(Function));
-            });
-
-            it('has Observer properties', function () {
-                expect(mixInstance.model).toEqual(jasmine.any(Object));
-                expect(mixInstance.bindModel).toEqual(jasmine.any(Function));
-                expect(mixInstance.onChange).toEqual(jasmine.any(Function));
-                expect(mixInstance.offChange).toEqual(jasmine.any(Function));
-            });
-
-            it('has List properties', function () {
-                expect(mixInstance._list).toEqual([]);
-                expect(mixInstance.push).toEqual(jasmine.any(Function));
-                expect(mixInstance.pop).toEqual(jasmine.any(Function));
-                expect(mixInstance.shift).toEqual(jasmine.any(Function));
-                expect(mixInstance.unsift).toEqual(jasmine.any(Function));
-            });
-
-            it('Parent properties', function () {
-                expect(mixInstance.parentProp).toBeDefined();
-            });
-
-            it('Child properties', function () {
-                expect(mixInstance.childProp).toBeDefined();
-            });
-
-            it('SubChild properties', function () {
-                expect(mixInstance.subChildProp).toBeDefined();
-            });
-
-            it('has Mix properties', function () {
-                expect(mixInstance.type).toBeDefined();
-            });
-
-
-        });
-
-        describe('correct init', function () {
-
-            it('Observer init', function () {
-                expect(mixInstance.model.lib).toBe('classyxin');
-            });
-
-
-            it('Mix init', function () {
-                expect(mixInstance.type).toBe('default');
-            });
-
-            it('counter init', function () {
-                expect(mixInstance.counter).toBe(2);
-            });
-
-
-        });
-
-    });
-
-    describe('child with mix parent', function () {
-        var Mixin1 = classyxin.createMixin({
-            mixin1Prop: 'mixin1',
-            init: function () {
-                this.counter += 1;
-            }
-        });
-        var Mixin2 = classyxin.createMixin({
-            mixin1Prop: 'mixin2',
-            init: function () {
-                this.counter += 1;
-            }
-        });
-        var Mix = classyxin.createMix(
-            {
-                mixProto: 'mix',
-                init: function () {
-                    this.counter += 2;
-                }
-            },
-            Mixin1,
-            Mixin2
-        );
-        var ChildOfMix = classyxin.createClass(
-            {
-                counter: 0,
-                init: function () {
-                    this.counter /= 2;
-                }
-            },
-            Mix
-        );
-
-        var instanceChildOfMix = new ChildOfMix();
-
-        it('correctInit', function () {
-            expect(instanceChildOfMix.counter).toBe(2);
-        });
-
-    });
 
     describe('destructors', function () {
         var Parent = classyxin.createClass({
@@ -633,71 +357,6 @@ describe('classyxin tests', function () {
             subInstance.destructor();
             expect(subInstance.counter).toBe(0);
         });
-
-        var Mixin1 = classyxin.createMixin({
-            init: function () {
-                this.counter += 1;
-            },
-            destructor: function () {
-                this.counter -= 1;
-            }
-        });
-
-        var Mixin2 = classyxin.createMixin({
-            init: function () {
-                this.counter *= 3;
-            },
-            destructor: function () {
-                this.counter /= 3;
-            }
-        });
-
-        var Mix = classyxin.createMix(
-            {
-                counter: 0,
-                init: function () {
-                    this.counter /= 3;
-                },
-                destructor: function () {
-                    this.counter *= 3;
-                }
-            },
-            Mixin1,
-            Mixin2
-        );
-
-        it('mixin destructor', function () {
-            var mixInstance = new Mix();
-            expect(mixInstance.counter).toBe(1);
-            mixInstance.destructor();
-            expect(mixInstance.counter).toBe(0);
-        });
-
-        var MixWithSubChild = classyxin.createMix(
-            {
-                init: function () {
-                    this.counter += 10;
-                },
-                destructor: function () {
-                    this.counter -= 10;
-                }
-            },
-            SubChild,
-            Mix
-        );
-
-        var mixWithSubChildInstance;
-
-        it('correct init', function () {
-            mixWithSubChildInstance = new MixWithSubChild();
-            expect(mixWithSubChildInstance.counter).toBe(13);
-        });
-
-        it('correct destruction', function () {
-            mixWithSubChildInstance.destructor();
-            expect(mixWithSubChildInstance.counter).toBe(0);
-        });
-
 
     });
 

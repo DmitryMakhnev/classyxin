@@ -1,127 +1,70 @@
-var SAVE_ITEM_CODE = true;
-var IGNORE_ITEM_CODE = false;
-
-function indexParentsAndMixins (CommonConstructor) {
-    var initCollections = [];
-    var destructorCollections = [];
-    var commonConstructorsStack = [CommonConstructor];
-    var statesStack = [SAVE_ITEM_CODE];
-    var mixinsIds = [];
-    var classesIds = [];
-
-    while (commonConstructorsStack.length) {
-        var code = statesStack.shift();
-        var CommonConstructorFromStack = commonConstructorsStack.shift();
-
-        classesIds.push(CommonConstructorFromStack.__cmId);
-
-        var commonConstructorPrototype = CommonConstructorFromStack.prototype;
-        if ((code !== IGNORE_ITEM_CODE)
-            && commonConstructorPrototype) {
-
-            if (commonConstructorPrototype.init) {
-                initCollections.unshift(commonConstructorPrototype.init);
-            }
-
-            if (CommonConstructorFromStack.__destructor) {
-                destructorCollections.unshift(CommonConstructorFromStack.__destructor);
-            } else if (commonConstructorPrototype.destructor
-                && (commonConstructorPrototype.destructor !== commonDestructor)) {
-                destructorCollections.unshift(commonConstructorPrototype.destructor);
-            }
-        }
-
-        var ParentConstructor = CommonConstructorFromStack.__ParentConstructor;
-        if (ParentConstructor) {
-            commonConstructorsStack.unshift(ParentConstructor);
-            statesStack.unshift(CommonConstructorFromStack.__isInitParent ? SAVE_ITEM_CODE : IGNORE_ITEM_CODE);
-        }
-
-        var Mixins = CommonConstructorFromStack.__Mixins;
-        if (Mixins) {
-            var i = 0;
-            var iMax = Mixins.length;
-
-            for (; i < iMax; i += 1) {
-                commonConstructorsStack.unshift(Mixins[i]);
-                statesStack.unshift(SAVE_ITEM_CODE);
-                mixinsIds.push(Mixins[i].__cmId);
-            }
-        }
-
-    }
-
-    CommonConstructor.__classesIds = classesIds;
-    CommonConstructor.__mixinsIds = mixinsIds;
-    CommonConstructor.__inits = initCollections;
-    CommonConstructor.__destructors = destructorCollections;
-
-    return initCollections;
-}
-
-/*@DTesting.exports*/
-
-var defaultTestingExports = require('default-testing').exports;
-var getObjectSafely = require('default-lib').getObjectSafely;
-getObjectSafely(defaultTestingExports, 'classyxin').indexParentsAndMixins = indexParentsAndMixins;
-
-/*@/DTesting.exports*/
-
-
 var index = 1;
 
+//utils
 
-var isArray;
-
-if (Array.isArray) {
-    isArray = Array.isArray;
-} else {
-    var toString = Object.prototype.toString;
-
-    /**
-     *
-     * @param {*} verifiable
-     * @return {boolean}
-     */
-    isArray = function (verifiable) {
-        return toString.call(verifiable) === '[object Array]';
-    }
-}
-
-function commonDestructor () {
-    var self = this;
-    var destructorCollection = self.__Constructor.__destructors;
-
-    if (destructorCollection) {
-        var i = destructorCollection.length;
-        while (i--) {
-            destructorCollection[i].apply(self, arguments);
+/**
+ *
+ * @param {Object} objectForm
+ * @param {Object} objectTo
+ * @param {Function} [filter]
+ * @return {Object} objectTo
+ */
+function mergeObject (objectForm, objectTo, filter) {
+    for (var p in objectForm) {
+        if (objectForm.hasOwnProperty(p)
+            && (!filter || filter(p))) {
+            objectTo[p] = objectForm[p];
         }
     }
+    return objectTo
 }
 
 
 /**
  *
- * @param {Function} Constructor
- * @param {Object} prototypePart
+ * @param {String} property
+ * @return {Boolean}
  */
-function extendConstructorPrototype (Constructor, prototypePart) {
-    var constructorPrototype = Constructor.prototype;
-    for (var p in prototypePart) {
-        if (prototypePart.hasOwnProperty(p)) {
-            constructorPrototype[p] = prototypePart[p];
-        }
+function mergePrototypesFilter (property) {
+    switch (property){
+        case 'init':
+        case 'destructor':
+        case '__Constructor':
+        case 'constructor':
+            return false;
     }
-    return constructorPrototype;
+    return true;
 }
 
 /**
  *
- * @return {CommonConstructor}
+ * @param {Array} arrayFrom
+ * @param {Array} arrayTo
+ * @return {Array} arrayTo
  */
-function createCommonConstructor () {
-    function CommonConstructor () {
+function mergeArrays (arrayFrom, arrayTo) {
+    for (var i = 0, iMax = arrayFrom.length; i < iMax; i += 1) {
+        arrayTo.push(arrayFrom[i]);
+    }
+    return arrayTo;
+}
+
+
+/**
+ *
+ * @param {Array} collections
+ * @return {Boolean}
+ */
+function collectionContainsElements (collections) {
+    return collections.length !== 0;
+}
+
+/**
+ *
+ * @return {ClassConstructor}
+ */
+function createClassConstructor () {
+    function ClassConstructor () {
         var self = this;
         var initCollection = self.__Constructor.__inits;
 
@@ -137,96 +80,304 @@ function createCommonConstructor () {
         return self;
     }
 
-    CommonConstructor.__cmId = index;
-    CommonConstructor.prototype.__Constructor = CommonConstructor;
+    ClassConstructor.__cmId = index;
+    ClassConstructor.prototype.__Constructor = ClassConstructor;
     index += 1;
 
-    return CommonConstructor;
+    return ClassConstructor;
+}
+
+function commonDestructor () {
+    var self = this;
+    var destructorCollection = self.__Constructor.__destructors;
+
+    if (destructorCollection) {
+        var i = destructorCollection.length;
+        while (i--) {
+            destructorCollection[i].apply(self, arguments);
+        }
+    }
 }
 
 /**
  *
- * @param {Object} [prototypePart]
- * @param {CommonConstructor} [ParentConstructor]
- * @param {Boolean} [isNeedInitParent]
- * @return {CommonConstructor}
+ * @param {ClassConstructor} ClassConstructor
+ * @param {Object} settings
+ * @param {Boolean} [notAutoDestruct]
+ * @constructor
  */
-function createClass (prototypePart, ParentConstructor, isNeedInitParent) {
-    var CommonConstructor = createCommonConstructor();
-    var hasProto = true;
+function ParentConfigurator (ClassConstructor, settings, notAutoDestruct) {
+    var parentConfigurator = this;
+    parentConfigurator.parent = ClassConstructor;
+    parentConfigurator.settings = settings;
+    parentConfigurator.notAutoDestruct = notAutoDestruct || false;
+}
 
-    if (!prototypePart) {
-        hasProto = false;
+ParentConfigurator.prototype.destructor = function () {
+    var parentConfigurator = this;
+    parentConfigurator.parent = null;
+    parentConfigurator.settings = null;
+};
+
+/**
+ *
+ * @param {Object} base
+ * @constructor
+ */
+function Mixin (base) {
+    var mixin = this;
+    mixin.base = base;
+    mixin.__mixinId = index;
+    index += 1;
+}
+
+Mixin.prototype.destructor = function () {
+    var mixin = this;
+    mixin.base = null;
+    mixin.__mixinId = null;
+};
+
+
+//parts detectors
+
+/**
+ *
+ * @param {*} verifiable
+ * @return {boolean}
+ */
+function isParent (verifiable) {
+    return typeof verifiable === 'function';
+}
+
+/**
+ *
+ * @param {*} verifiable
+ * @return {boolean}
+ */
+function isParentConfiguration (verifiable) {
+    return verifiable instanceof ParentConfigurator;
+}
+
+/**
+ *
+ * @param {*} verifiable
+ * @return {boolean}
+ */
+function isMixin (verifiable) {
+    return verifiable instanceof Mixin;
+}
+
+/**
+ *
+ * @param {*} verifiable
+ * @return {boolean}
+ */
+function isClassPrototype (verifiable) {
+    return !isParent(verifiable)
+        && !isParentConfiguration(verifiable)
+        && !isMixin(verifiable);
+}
+
+
+///**
+// *
+// * @param {Object} [prototypePart]
+// * @param {ClassConstructor} [ParentConstructor]
+// * @param {Boolean} [isNeedInitParent]
+// * @return {ClassConstructor}
+// */
+function createClass () {
+
+    //parse arguments
+    var args = arguments;
+    var classPrototype;
+    var lastArgument;
+
+    if (args.length > 0) {
+        lastArgument = args[args.length - 1];
+
+        if (isClassPrototype(lastArgument)) {
+            classPrototype = lastArgument;
+        }
     }
 
-    var commonConstructorPrototype;
+    var prototypeExtend;
+    var prototypeExtendPart = null;
 
-    if (ParentConstructor) {
-        extendConstructorPrototype(CommonConstructor, ParentConstructor.prototype);
+    var classesIds = [];
+    var mixinsIds = [];
+    var inits = [];
+    var destructors = [];
 
-        //save parent data
-        CommonConstructor.__ParentConstructor = ParentConstructor;
-        CommonConstructor.__isInitParent = isNeedInitParent !== false;
-
-        if (hasProto) {
-            extendConstructorPrototype(CommonConstructor, prototypePart);
+    function processingParent (parent, parentSettings) {
+        //add parent parents ids
+        if (parent.__classesIds) {
+            mergeArrays(parent.__classesIds, classesIds);
+        }
+        //add parent id
+        if (parent.__cmId) {
+            classesIds.push(parent.__cmId);
         }
 
-        indexParentsAndMixins(CommonConstructor);
-
-        commonConstructorPrototype = CommonConstructor.prototype;
-        if (commonConstructorPrototype.destructor) {
-            CommonConstructor.__destructor = commonConstructorPrototype.destructor;
+        //add parent inits
+        if (parent.__inits) {
+            mergeArrays(parent.__inits, inits);
         }
 
-        commonConstructorPrototype.destructor = commonDestructor;
+        //check need parent init
+        if (parent.prototype.init
+            && parentSettings
+            && !parentSettings.needInit) {
+            inits.pop();
+        }
 
-    } else {
-        //add working props
-        CommonConstructor.__classesIds = [CommonConstructor.__cmId];
-        CommonConstructor.__inits = [];
+        //add parent mixins ids
+        if (parent.__mixinsIds) {
+            mergeArrays(parent.__mixinsIds, mixinsIds);
+        }
+        
+        //add parent destructors
+        if (parent.__destructors) {
+            mergeArrays(parent.__destructors, destructors);
+        }
 
-        if (hasProto) {
-            extendConstructorPrototype(CommonConstructor, prototypePart);
-            if (prototypePart.init) {
-                CommonConstructor.__inits.push(prototypePart.init);
+
+        prototypeExtendPart = parent.prototype;
+    }
+
+    var i;
+    var iMax;
+    var argument;
+
+    for (i = 0, iMax = args.length; i < iMax; i += 1) {
+        argument = args[i];
+        
+        if (isParent(argument)) {
+            processingParent(argument);
+
+        } else if (isParentConfiguration(argument)) {
+            processingParent(argument.parent, argument.settings);
+            if (!argument.notAutoDestruct) {
+                argument.destructor();
             }
+
+        } else if (isMixin(argument)) {
+            mixinsIds.push(argument.__mixinId);
+            prototypeExtendPart = argument.base;
+        }
+
+        if (prototypeExtendPart) {
+            if (!prototypeExtend) {
+                prototypeExtend = {};
+            }
+
+            mergeObject(
+                prototypeExtendPart, 
+                prototypeExtend, 
+                mergePrototypesFilter
+            );
+
+            prototypeExtendPart = null;
         }
     }
 
-    CommonConstructor.prototype.__Constructor = CommonConstructor;
+    //processing prototype
+    if (prototypeExtend) {
+        if (classPrototype) {
+            mergeObject(classPrototype, prototypeExtend);
+        }
+        classPrototype = prototypeExtend;
+    }
 
-    return CommonConstructor;
+    //create class constructor
+    var ClassConstructor = createClassConstructor();
+
+    if (classPrototype) {
+        ClassConstructor.prototype = classPrototype;
+    }
+
+    var ClassConstructorPrototype = ClassConstructor.prototype;
+
+    ClassConstructorPrototype.__Constructor = ClassConstructor;
+
+    //extend class data from class
+    classesIds.push(ClassConstructor.__cmId);
+    
+    if (ClassConstructorPrototype.destructor) {
+        destructors.push(ClassConstructorPrototype.destructor);
+    }
+    
+    if (ClassConstructorPrototype.init) {
+        inits.push(ClassConstructorPrototype.init);
+    }
+    
+    //extend class constructors
+    ClassConstructor.__classesIds = classesIds;
+    
+    if (collectionContainsElements(mixinsIds)) {
+        ClassConstructor.__mixinsIds = mixinsIds;    
+    }
+    
+    if (collectionContainsElements(inits)) {
+        ClassConstructor.__inits = inits;
+    }
+
+    if (collectionContainsElements(destructors)) {
+        ClassConstructor.__destructors = destructors;
+    }
+    
+
+    ClassConstructorPrototype.destructor = commonDestructor;
+
+    return ClassConstructor;
 }
 
 var classyxin = {
+    /**
+     *
+     * @return {ClassConstructor}
+     */
+    createClassConstructor: createClassConstructor,
+
+    //export ParentConfigurator constructor
+    ParentConfigurator: ParentConfigurator,
 
     /**
      *
-     * @return {CommonConstructor}
+     * @param {ClassConstructor} Parent
+     * @param {Object} settings
+     * @param {Boolean} [notAutoDestruct]
+     * @return {ParentConfigurator}
      */
-    createCommonConstructor: createCommonConstructor,
+    configureParent: function (Parent, settings, notAutoDestruct) {
+        return new ParentConfigurator(Parent, settings, notAutoDestruct);
+    },
+
+    //export Mixin constructor
+    Mixin: Mixin,
 
     /**
      *
-     * @param {Function} Constructor
-     * @param {Object} prototypePart
+     * @param {Object} base
+     * @return {Mixin}
      */
-    extendConstructorPrototype: extendConstructorPrototype,
+    createMixin: function (base) {
+        return new Mixin(base);
+    },
 
     /**
      *
      * @param {Object} [prototypePart]
-     * @param {CommonConstructor} [ParentConstructor]
+     * @param {ClassConstructor} [ParentConstructor]
      * @param {Boolean} [isNeedInitParent]
-     * @return {CommonConstructor}
+     * @return {ClassConstructor}
      */
     createClass: createClass,
 
     /**
      *
      * @param {Object} instance
-     * @param {CommonConstructor} VerifiableConstructor
+     * @param {ClassConstructor} VerifiableConstructor
      * @return {boolean}
      */
     instanceOf: function (instance, VerifiableConstructor) {
@@ -242,99 +393,8 @@ var classyxin = {
 
     /**
      *
-     * @param {Object} [prototypePart]
-     * @param {CommonConstructor} [ParentConstructor]
-     * @param {Boolean} [isNeedInitParent]
-     * @return {CommonConstructor}
-     */
-    createMixin: createClass,
-
-    /**
-     *
-     * @param {Object|Null} prototypePart
-     * @param {CommonConstructor|Array} Mixin
-     * @return {CommonConstructor}
-     */
-    createMix: function (prototypePart, Mixin) {
-        var mixinsCollection;
-        var i = 0;
-        var hasPrototypePart = true;
-
-        //prepare createMix prototype
-        if (typeof prototypePart === 'function') {
-            mixinsCollection = arguments;
-            hasPrototypePart = false;
-        } else if (isArray(prototypePart)) {
-            mixinsCollection = prototypePart;
-            hasPrototypePart = false;
-        } else if (prototypePart === null){
-            hasPrototypePart = false;
-        }
-
-        //prepare  mixins
-        if (!mixinsCollection) {
-            if (typeof Mixin === 'function') {
-                mixinsCollection = arguments;
-                i = 1;
-            } else {
-                mixinsCollection = Mixin;
-            }
-        }
-
-        var CommonConstructor = createCommonConstructor();
-
-        var commonConstructorPrototype;
-        if (hasPrototypePart) {
-            commonConstructorPrototype = extendConstructorPrototype(CommonConstructor, prototypePart)
-        } else {
-            commonConstructorPrototype = CommonConstructor.prototype;
-        }
-
-        //copy all Mixins constructors prototypes properties in createMix prototype
-        var mixinPrototype;
-        var Mixins = [];
-        for (var iMax = mixinsCollection.length; i < iMax; i += 1) {
-            Mixins.push(mixinsCollection[i]);
-            mixinPrototype = mixinsCollection[i].prototype;
-            for (var p in mixinPrototype) {
-                if (mixinPrototype.hasOwnProperty(p)) {
-                    commonConstructorPrototype[p] = mixinPrototype[p];
-                }
-            }
-        }
-
-        //restore prototypePart and build prototype
-        if (hasPrototypePart) {
-            if (prototypePart.init) {
-                commonConstructorPrototype.init = prototypePart.init;
-            }
-            if (prototypePart.destructor) {
-
-                commonConstructorPrototype.destructor = prototypePart.destructor;
-            }
-        }
-
-        //extend prototype
-        commonConstructorPrototype.__Constructor = CommonConstructor;
-        CommonConstructor.__Mixins = Mixins;
-
-        indexParentsAndMixins(CommonConstructor);
-
-        //save destructor
-        if (commonConstructorPrototype.destructor) {
-            CommonConstructor.__destructor = commonConstructorPrototype.destructor;
-        }
-
-        //add common destructor
-        commonConstructorPrototype.destructor = commonDestructor;
-
-        return CommonConstructor;
-    },
-
-    /**
-     *
      * @param {Object} mixInstance
-     * @param {CommonConstructor} MixinConstructor
+     * @param {ClassConstructor} MixinConstructor
      * @return {boolean}
      */
     hasMixin: function (mixInstance, MixinConstructor) {
@@ -350,10 +410,3 @@ var classyxin = {
 };
 
 module.exports = classyxin;
-
-
-
-
-
-
-
