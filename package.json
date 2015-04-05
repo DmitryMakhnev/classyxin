@@ -12,6 +12,10 @@
     "mixins",
     "classes and mixins"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:DmitryMakhnev/classyxin.git"
+  },
   "author": {
     "name": "Dmitry Makhnev",
     "email": "dmitry.ivshin@gmail.com"

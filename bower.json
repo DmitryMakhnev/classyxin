@@ -17,5 +17,9 @@
       "email": "dmitry.ivshin@gmail.com"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@git@github.com:DmitryMakhnev/classyxin.git"
+  },
   "umdName": "classyxin"
 }
