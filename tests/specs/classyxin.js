@@ -133,7 +133,7 @@ describe('classyxin tests', function () {
                                 this.booleanProp = false;
                             }
                         });
-                    
+
                     var instance = new CXClass();
 
                     expect(instance.booleanProp).toBe(false);
@@ -147,7 +147,7 @@ describe('classyxin tests', function () {
                         counter: 0,
                         init: function () {
                             this.counter += 1;
-                        } 
+                        }
                     });
 
                 var Child;
@@ -250,58 +250,200 @@ describe('classyxin tests', function () {
 
             });
 
+            describe('createClass with mixin', function () {
 
+                var mixin = classyxin.createMixin({
+                    mixinMethod: function () {
+                        this.counter += 2;
+                    },
+                    mixinProp: 22
+                });
+
+                var ParentClass = classyxin.createClass({
+                    counter: 0,
+                    init: function () {
+                        this.counter += 3;
+                    }
+                });
+
+                var ChildClass = classyxin.createClass(
+                    mixin,
+                    ParentClass,
+                    {
+                        init: function () {
+                            this.mixinMethod();
+                            this.counter /= 5;
+                        }
+                    }
+                );
+
+                var childClassInstance = new ChildClass();
+
+                it('has mixin method', function () {
+                    expect(childClassInstance.mixinMethod).toEqual(jasmine.any(Function));
+                });
+
+                it('has mixin prop', function () {
+                    expect(childClassInstance.mixinProp).toBe(22);
+                });
+
+                it('correct init', function () {
+                    expect(childClassInstance.counter).toBe(1);
+                });
+
+                it('hasMixin', function () {
+                    expect(classyxin.hasMixin(childClassInstance, mixin)).toBeTruthy();
+                });
+
+            });
+
+            describe('createClass with deep multiple inheritance and mixins', function () {
+
+                var mixin = classyxin.createMixin({
+                    mixinMethod: function () {
+                        this.counter += 2;
+                    }
+                });
+
+                var mixin2= classyxin.createMixin({
+                    mixin2Method: function () {
+                        this.counter -=2;
+                    }
+                });
+
+                var ParentClass = classyxin.createClass({
+                    counter: 0,
+                    init: function () {
+                        this.counter += 2.5;
+                    }
+                });
+
+                var FirstChildClass = classyxin.createClass(
+                    ParentClass,
+                    {
+                        init: function () {
+                            this.counter *= 2;
+                        }
+                    }
+                );
+
+                var SecondChildClass = classyxin.createClass(
+                    mixin,
+                    {
+                        init: function () {
+                            this.counter /= 5;
+                        }
+                    }
+                );
+
+                var SubChildClass;
+
+                it('create SubChildClass', function () {
+                    SubChildClass = classyxin.createClass(
+                        FirstChildClass,
+                        SecondChildClass,
+                        mixin2,
+                        {
+                            init: function () {
+                                this.mixinMethod();
+                                this.mixin2Method();
+                                this.counter *= 2;
+                            }
+                        }
+                    )
+                });
+
+                var subChildInstance;
+
+                it('init SubChildClass', function () {
+                    subChildInstance = new SubChildClass();
+                });
+
+                it('correct init', function () {
+                    expect(subChildInstance.counter).toBe(2);
+                });
+
+                it('has mixin', function () {
+                    expect(classyxin.hasMixin(subChildInstance, mixin)).toBeTruthy();
+                });
+
+                it('has mixin2', function () {
+                    expect(classyxin.hasMixin(subChildInstance, mixin2)).toBeTruthy();
+                });
+
+                it('instance of ParentClass', function () {
+                    expect(classyxin.instanceOf(subChildInstance, ParentClass)).toBeTruthy();
+                });
+
+                it('instance of FirstChildClass', function () {
+                    expect(classyxin.instanceOf(subChildInstance, FirstChildClass)).toBeTruthy();
+                });
+
+                it('instance of SecondChildClass', function () {
+                    expect(classyxin.instanceOf(subChildInstance, SecondChildClass)).toBeTruthy();
+                });
+
+
+            });
 
         });
-        
+
+        describe('use constructor method and parentConstructor', function () {
+
+            var ParentClass = classyxin.createClass({
+                counter: 0,
+                construct: function (param) {
+                    this.counter += param;
+                }
+            });
+
+            var ChildClass = classyxin.createClass(
+                ParentClass,
+                {
+                    construct: function (param1, param2) {
+                        this.counter += param1 - param2;
+                    }
+                }
+            );
+
+            describe('constructor auto call', function () {
+                var childInstance;
+                it('init', function () {
+                    childInstance = new ChildClass(2, 1);
+                });
+                it('correct instance', function () {
+                    expect(childInstance.counter).toBe(1);
+                });
+            });
+
+            var SubChildClass = classyxin.createClass(
+                ChildClass,
+                {
+                    init: function () {
+                        classyxin.callConstruct(this, ParentClass, 2);
+                        classyxin.callConstruct(this, ChildClass, [2, 1]);
+                        this.counter *= 2;
+                    }
+                }
+            );
+
+            var subChildInstance;
+
+            it('init child', function () {
+                subChildInstance = new SubChildClass();
+            });
+
+            it('childInstance has not constructor property', function () {
+                expect(subChildInstance.construct).toBeFalsy();
+            });
+
+            it('correct init', function () {
+                expect(subChildInstance.counter).toBe(6);
+            });
+
+        });
+
     });
-
-    //var Events = classyxin.createMixin({
-    //    _listeners: null,
-    //    _handlers: null,
-    //
-    //    init: function () {
-    //        this._listeners = [];
-    //        this._handlers = [];
-    //    },
-    //
-    //    on: function () {},
-    //    off: function () {}
-    //});
-    //
-    //var List = classyxin.createMixin({
-    //    _list: null,
-    //
-    //    init: function () {
-    //        this._list = [];
-    //    },
-    //
-    //    push: function () {},
-    //    pop: function () {},
-    //    shift: function () {},
-    //    unsift: function () {}
-    //});
-    //
-    //var Observer = classyxin.createMixin({
-    //    model: null,
-    //
-    //    init: function (model) {
-    //        if (model) {
-    //            this.model = model;
-    //        }
-    //    },
-    //
-    //    bindModel: function (model) {
-    //        this.model = model;
-    //    },
-    //
-    //    onChange: function () {},
-    //    offChange: function () {}
-    //
-    //});
-
-    //TODO: [dmitry.makhnev] mixins tests
-    //TODO: [dmitry.makhnev] classes without auto inits and destructor tests
 
 
     describe('destructors', function () {

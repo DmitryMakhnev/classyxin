@@ -5,6 +5,21 @@ var webpackConfig = require('./webpack.config');
 var runSequence = require('gulp-run-sequence');
 var bowerConfig = require('./bower.json');
 var bump = require('gulp-bump');
+var argv = require('yargs').argv;
+
+var bumpConfig;
+function createBumpConfig (type) {
+    bumpConfig = {type: type};
+}
+
+if (argv.v) {
+    switch (argv.v) {
+        case 'major':
+        case 'minor':
+            createBumpConfig(argv.v);
+            break;
+    }
+}
 
 
 gulp.task('build', function (callback) {
@@ -13,7 +28,6 @@ gulp.task('build', function (callback) {
         ['build.dist', 'build.bump']
     );
 });
-
 
 /**
  * Run test once and exit
@@ -35,7 +49,7 @@ gulp.task('build.dist', function () {
 
 gulp.task('build.bump', function () {
     return gulp.src(['./bower.json', './package.json'])
-        .pipe(bump())
+        .pipe(bump(bumpConfig))
         .pipe(gulp.dest('./'));
 });
 

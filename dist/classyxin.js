@@ -1,1 +1,515 @@
-!function(t,n){"object"==typeof exports&&"object"==typeof module?module.exports=n():"function"==typeof define&&define.amd?define(n):"object"==typeof exports?exports.classyxin=n():t.classyxin=n()}(this,function(){return function(t){function n(e){if(r[e])return r[e].exports;var o=r[e]={exports:{},id:e,loaded:!1};return t[e].call(o.exports,o,o.exports,n),o.loaded=!0,o.exports}var r={};return n.m=t,n.c=r,n.p="",n(0)}([function(t){function n(t,n,r){for(var e in t)!t.hasOwnProperty(e)||r&&!r(e)||(n[e]=t[e]);return n}function r(t){switch(t){case"init":case"destructor":case"__Constructor":case"constructor":return!1}return!0}function e(t,n){for(var r=0,e=t.length;e>r;r+=1)n.push(t[r]);return n}function o(t){return 0!==t.length}function s(){function t(){var t=this,n=t.__Constructor.__inits;if(n)for(var r=0,e=n.length;e>r;r+=1)n[r].apply(t,arguments);return t}return t.__cmId=l,t.prototype.__Constructor=t,l+=1,t}function i(){var t=this,n=t.__Constructor.__destructors;if(n)for(var r=n.length;r--;)n[r].apply(t,arguments)}function u(t,n,r){var e=this;e.parent=t,e.settings=n,e.notAutoDestruct=r||!1}function c(t){var n=this;n.base=t,n.__mixinId=l,l+=1}function _(t){return"function"==typeof t}function a(t){return t instanceof u}function f(t){return t instanceof c}function p(t){return!_(t)&&!a(t)&&!f(t)}function d(){function t(t,n){t.__classesIds&&e(t.__classesIds,I),t.__cmId&&I.push(t.__cmId),t.__inits&&e(t.__inits,g),t.prototype.init&&n&&!n.needInit&&g.pop(),t.__mixinsIds&&e(t.__mixinsIds,y),t.__destructors&&e(t.__destructors,C),m=t.prototype}var u,c,d=arguments;d.length>0&&(c=d[d.length-1],p(c)&&(u=c));var l,x,h,v,m=null,I=[],y=[],g=[],C=[];for(x=0,h=d.length;h>x;x+=1)v=d[x],_(v)?t(v):a(v)?(t(v.parent,v.settings),v.notAutoDestruct||v.destructor()):f(v)&&(y.push(v.__mixinId),m=v.base),m&&(l||(l={}),n(m,l,r),m=null);l&&(u&&n(u,l),u=l);var b=s();u&&(b.prototype=u);var w=b.prototype;return w.__Constructor=b,I.push(b.__cmId),w.destructor&&C.push(w.destructor),w.init&&g.push(w.init),b.__classesIds=I,o(y)&&(b.__mixinsIds=y),o(g)&&(b.__inits=g),o(C)&&(b.__destructors=C),w.destructor=i,b}var l=1;u.prototype.destructor=function(){var t=this;t.parent=null,t.settings=null},c.prototype.destructor=function(){var t=this;t.base=null,t.__mixinId=null};var x={createClassConstructor:s,ParentConfigurator:u,configureParent:function(t,n,r){return new u(t,n,r)},Mixin:c,createMixin:function(t){return new c(t)},createClass:d,instanceOf:function(t,n){var r=t.__Constructor;if(r){var e=r.__classesIds;if(e)return-1!==e.indexOf(n.__cmId)}return!1},hasMixin:function(t,n){var r=t.__Constructor;if(r){var e=r.__mixinsIds;if(e)return-1!==e.indexOf(n.__cmId)}return!1}};t.exports=x}])});
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define(factory);
+	else if(typeof exports === 'object')
+		exports["classyxin"] = factory();
+	else
+		root["classyxin"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var index = 1;
+
+	//utils
+
+	/**
+	 *
+	 * @param {Object} objectForm
+	 * @param {Object} objectTo
+	 * @param {Function} [filter]
+	 * @return {Object} objectTo
+	 */
+	function mergeObject (objectForm, objectTo, filter) {
+	    for (var p in objectForm) {
+	        if (objectForm.hasOwnProperty(p)
+	            && (!filter || filter(p))) {
+	            objectTo[p] = objectForm[p];
+	        }
+	    }
+	    return objectTo
+	}
+
+
+	/**
+	 *
+	 * @param {String} property
+	 * @return {Boolean}
+	 */
+	function mergePrototypesFilter (property) {
+	    switch (property){
+	        case 'init':
+	        case 'destructor':
+	        case '__Constructor':
+	        case 'construct':
+	            return false;
+	    }
+	    return true;
+	}
+
+	/**
+	 *
+	 * @param {Array} arrayFrom
+	 * @param {Array} arrayTo
+	 * @return {Array} arrayTo
+	 */
+	function mergeArrays (arrayFrom, arrayTo) {
+	    for (var i = 0, iMax = arrayFrom.length; i < iMax; i += 1) {
+	        arrayTo.push(arrayFrom[i]);
+	    }
+	    return arrayTo;
+	}
+
+
+	/**
+	 *
+	 * @param {Array} collections
+	 * @return {Boolean}
+	 */
+	function collectionContainsElements (collections) {
+	    return collections.length !== 0;
+	}
+
+	var isArray;
+
+	if (Array.isArray) {
+	    isArray = Array.isArray;
+	} else {
+	    var toString = Object.prototype.toString;
+
+	    /**
+	    *
+	    * @param {*} verifiable
+	    * @return {boolean}
+	    */
+	    isArray = function (verifiable) {
+	        return toString.call(verifiable) === '[object Array]';
+	    }
+	}
+
+	/**
+	 *
+	 * @return {ClassConstructor}
+	 */
+	function createClassConstructor () {
+	    function ClassConstructor () {
+	        var self = this;
+	        var initCollection = self.__Constructor.__inits;
+
+	        if (initCollection) {
+	            var i = 0;
+	            var iMax = initCollection.length;
+
+	            for (; i < iMax; i += 1) {
+	                initCollection[i].apply(self, arguments);
+	            }
+	        }
+
+	        if (self.construct) {
+	            self.construct.apply(self, arguments);
+	        }
+
+	        return self;
+	    }
+
+	    ClassConstructor.__cmId = index;
+	    ClassConstructor.prototype.__Constructor = ClassConstructor;
+	    index += 1;
+
+	    return ClassConstructor;
+	}
+
+	function commonDestructor () {
+	    var self = this;
+	    var destructorCollection = self.__Constructor.__destructors;
+
+	    if (destructorCollection) {
+	        var i = destructorCollection.length;
+	        while (i--) {
+	            destructorCollection[i].apply(self, arguments);
+	        }
+	    }
+	}
+
+	/**
+	 *
+	 * @param {ClassConstructor} ClassConstructor
+	 * @param {Object} settings
+	 * @param {Boolean} [notAutoDestruct]
+	 * @constructor
+	 */
+	function ParentConfigurator (ClassConstructor, settings, notAutoDestruct) {
+	    var parentConfigurator = this;
+	    parentConfigurator.parent = ClassConstructor;
+	    parentConfigurator.settings = settings;
+	    parentConfigurator.notAutoDestruct = notAutoDestruct || false;
+	}
+
+	ParentConfigurator.prototype.destructor = function () {
+	    var parentConfigurator = this;
+	    parentConfigurator.parent = null;
+	    parentConfigurator.settings = null;
+	};
+
+	/**
+	 *
+	 * @param {Object} base
+	 * @constructor
+	 */
+	function Mixin (base) {
+	    var mixin = this;
+	    mixin.base = base;
+	    mixin.__mixinId = index;
+	    index += 1;
+	}
+
+	Mixin.prototype.destructor = function () {
+	    var mixin = this;
+	    mixin.base = null;
+	    mixin.__mixinId = null;
+	};
+
+
+	//parts detectors
+
+	/**
+	 *
+	 * @param {*} verifiable
+	 * @return {boolean}
+	 */
+	function isParent (verifiable) {
+	    return typeof verifiable === 'function';
+	}
+
+	/**
+	 *
+	 * @param {*} verifiable
+	 * @return {boolean}
+	 */
+	function isParentConfiguration (verifiable) {
+	    return verifiable instanceof ParentConfigurator;
+	}
+
+	/**
+	 *
+	 * @param {*} verifiable
+	 * @return {boolean}
+	 */
+	function isMixin (verifiable) {
+	    return verifiable instanceof Mixin;
+	}
+
+	/**
+	 *
+	 * @param {*} verifiable
+	 * @return {boolean}
+	 */
+	function isClassPrototype (verifiable) {
+	    return !isParent(verifiable)
+	        && !isParentConfiguration(verifiable)
+	        && !isMixin(verifiable);
+	}
+
+
+	///**
+	// *
+	// * @param {Object} [prototypePart]
+	// * @param {ClassConstructor} [ParentConstructor]
+	// * @param {Boolean} [isNeedInitParent]
+	// * @return {ClassConstructor}
+	// */
+	function createClass () {
+
+	    //parse arguments
+	    var args = arguments;
+	    var classPrototype;
+	    var lastArgument;
+
+	    if (args.length > 0) {
+	        lastArgument = args[args.length - 1];
+
+	        if (isClassPrototype(lastArgument)) {
+	            classPrototype = lastArgument;
+	        }
+	    }
+
+	    var prototypeExtend;
+	    var prototypeExtendPart = null;
+
+	    var classesIds = [];
+	    var mixinsIds = [];
+	    var inits = [];
+	    var destructors = [];
+
+	    function processingParent (parent, parentSettings) {
+	        //add parent parents ids
+	        if (parent.__classesIds) {
+	            mergeArrays(parent.__classesIds, classesIds);
+	        }
+	        //add parent id
+	        if (parent.__cmId) {
+	            classesIds.push(parent.__cmId);
+	        }
+
+	        //add parent inits
+	        if (parent.__inits) {
+	            mergeArrays(parent.__inits, inits);
+	        }
+
+	        //check need parent init
+	        if (parent.prototype.init
+	            && parentSettings
+	            && !parentSettings.needInit) {
+	            inits.pop();
+	        }
+
+	        //add parent mixins ids
+	        if (parent.__mixinsIds) {
+	            mergeArrays(parent.__mixinsIds, mixinsIds);
+	        }
+	        
+	        //add parent destructors
+	        if (parent.__destructors) {
+	            mergeArrays(parent.__destructors, destructors);
+	        }
+
+
+	        prototypeExtendPart = parent.prototype;
+	    }
+
+	    var i;
+	    var iMax;
+	    var argument;
+
+	    for (i = 0, iMax = args.length; i < iMax; i += 1) {
+	        argument = args[i];
+	        
+	        if (isParent(argument)) {
+	            processingParent(argument);
+
+	        } else if (isParentConfiguration(argument)) {
+	            processingParent(argument.parent, argument.settings);
+	            if (!argument.notAutoDestruct) {
+	                argument.destructor();
+	            }
+
+	        } else if (isMixin(argument)) {
+	            mixinsIds.push(argument.__mixinId);
+	            prototypeExtendPart = argument.base;
+	        }
+
+	        if (prototypeExtendPart) {
+	            if (!prototypeExtend) {
+	                prototypeExtend = {};
+	            }
+
+	            mergeObject(
+	                prototypeExtendPart, 
+	                prototypeExtend, 
+	                mergePrototypesFilter
+	            );
+
+	            prototypeExtendPart = null;
+	        }
+	    }
+
+	    //processing prototype
+	    if (prototypeExtend) {
+	        if (classPrototype) {
+	            mergeObject(classPrototype, prototypeExtend);
+	        }
+	        classPrototype = prototypeExtend;
+	    }
+
+	    //create class constructor
+	    var ClassConstructor = createClassConstructor();
+
+	    if (classPrototype) {
+	        ClassConstructor.prototype = classPrototype;
+	    }
+
+	    var ClassConstructorPrototype = ClassConstructor.prototype;
+
+	    ClassConstructorPrototype.__Constructor = ClassConstructor;
+
+	    //extend class data from class
+	    classesIds.push(ClassConstructor.__cmId);
+	    
+	    if (ClassConstructorPrototype.destructor) {
+	        destructors.push(ClassConstructorPrototype.destructor);
+	    }
+	    
+	    if (ClassConstructorPrototype.init) {
+	        inits.push(ClassConstructorPrototype.init);
+	    }
+	    
+	    //extend class constructors
+	    ClassConstructor.__classesIds = classesIds;
+	    
+	    if (collectionContainsElements(mixinsIds)) {
+	        ClassConstructor.__mixinsIds = mixinsIds;    
+	    }
+	    
+	    if (collectionContainsElements(inits)) {
+	        ClassConstructor.__inits = inits;
+	    }
+
+	    if (collectionContainsElements(destructors)) {
+	        ClassConstructor.__destructors = destructors;
+	    }
+	    
+
+	    ClassConstructorPrototype.destructor = commonDestructor;
+
+	    return ClassConstructor;
+	}
+
+	var classyxin = {
+	    /**
+	     *
+	     * @return {ClassConstructor}
+	     */
+	    createClassConstructor: createClassConstructor,
+
+	    //export ParentConfigurator constructor
+	    ParentConfigurator: ParentConfigurator,
+
+	    /**
+	     *
+	     * @param {ClassConstructor} Parent
+	     * @param {Object} settings
+	     * @param {Boolean} [notAutoDestruct]
+	     * @return {ParentConfigurator}
+	     */
+	    configureParent: function (Parent, settings, notAutoDestruct) {
+	        return new ParentConfigurator(Parent, settings, notAutoDestruct);
+	    },
+
+	    //export Mixin constructor
+	    Mixin: Mixin,
+
+	    /**
+	     *
+	     * @param {Object} base
+	     * @return {Mixin}
+	     */
+	    createMixin: function (base) {
+	        return new Mixin(base);
+	    },
+
+	    /**
+	     *
+	     * @param {Object} [prototypePart]
+	     * @param {ClassConstructor} [ParentConstructor]
+	     * @param {Boolean} [isNeedInitParent]
+	     * @return {ClassConstructor}
+	     */
+	    createClass: createClass,
+
+	    /**
+	     *
+	     * @param {Object} instance
+	     * @param {ClassConstructor} VerifiableConstructor
+	     * @return {boolean}
+	     */
+	    instanceOf: function (instance, VerifiableConstructor) {
+	        var Constructor = instance.__Constructor;
+	        if (Constructor) {
+	            var classesIds = Constructor.__classesIds;
+	            if (classesIds) {
+	                return classesIds.indexOf(VerifiableConstructor.__cmId) !== -1;
+	            }
+	        }
+	        return false;
+	    },
+
+	    /**
+	     *
+	     * @param {Object} mixInstance
+	     * @param {Mixin} mixin
+	     * @return {boolean}
+	     */
+	    hasMixin: function (mixInstance, mixin) {
+	        var Constructor = mixInstance.__Constructor;
+	        if (Constructor) {
+	            var mixinsIds = Constructor.__mixinsIds;
+	            if (mixinsIds) {
+	                return mixinsIds.indexOf(mixin.__mixinId) !== -1;
+	            }
+	        }
+	        return false;
+	    },
+
+	    /**
+	     *
+	     * @param {Object} instance
+	     * @param {ClassConstructor} ParentClass
+	     * @param {*|Array} param
+	     * @return {Object} instance
+	     */
+	    callConstruct: function (instance, ParentClass, param) {
+	        var constructor = ParentClass.prototype.construct;
+	        if (constructor) {
+	            if (isArray(param)) {
+	                constructor.apply(instance, param);
+	            } else {
+	                constructor.call(instance, param);
+	            }
+	        }
+	        return instance;
+	    }
+	};
+
+
+
+	module.exports = classyxin;
+
+/***/ }
+/******/ ])
+});
+;

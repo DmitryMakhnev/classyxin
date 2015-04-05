@@ -8,13 +8,9 @@ module.exports = {
 
     output: {
         path: path.resolve(bowerConfig.dist),
-        filename: 'classyxin.js',
+        filename: bowerConfig.umdName + '.js',
         libraryTarget: 'umd',
-        library: 'classyxin'
-    },
-
-    externals: {
-        defaultLib: 'classyxin'
+        library: bowerConfig.umdName
     },
 
     resolve: {
@@ -26,11 +22,10 @@ module.exports = {
             //loader removes code for testing
             {
                 test: /^.*$/,
-                loader: 'regexp',
-                rules: [
+                loader: 'annotation',
+                annotations: [
                     {
-                        //TODO: [dmitry.makhnev] modify this regexp
-                        'for': /\/\*@defaultTesting.exports\*\/[\w\.=+\-<>,'"/%/\[\];:(){}\s]*\*@\/defaultTesting.exports\*\//g,
+                        'for': 'DTesting.exports',
                         'do': ''
                     }
                 ]
@@ -41,7 +36,8 @@ module.exports = {
     plugins: [
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin('bower.json', ['main'])
-        ),
-        new webpack.optimize.UglifyJsPlugin()
+        )
+        //,
+        //new webpack.optimize.UglifyJsPlugin()
     ]
 };

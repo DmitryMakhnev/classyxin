@@ -30,7 +30,7 @@ function mergePrototypesFilter (property) {
         case 'init':
         case 'destructor':
         case '__Constructor':
-        case 'constructor':
+        case 'construct':
             return false;
     }
     return true;
@@ -59,6 +59,23 @@ function collectionContainsElements (collections) {
     return collections.length !== 0;
 }
 
+var isArray;
+
+if (Array.isArray) {
+    isArray = Array.isArray;
+} else {
+    var toString = Object.prototype.toString;
+
+    /**
+    *
+    * @param {*} verifiable
+    * @return {boolean}
+    */
+    isArray = function (verifiable) {
+        return toString.call(verifiable) === '[object Array]';
+    }
+}
+
 /**
  *
  * @return {ClassConstructor}
@@ -75,6 +92,10 @@ function createClassConstructor () {
             for (; i < iMax; i += 1) {
                 initCollection[i].apply(self, arguments);
             }
+        }
+
+        if (self.construct) {
+            self.construct.apply(self, arguments);
         }
 
         return self;
@@ -394,18 +415,37 @@ var classyxin = {
     /**
      *
      * @param {Object} mixInstance
-     * @param {ClassConstructor} MixinConstructor
+     * @param {Mixin} mixin
      * @return {boolean}
      */
-    hasMixin: function (mixInstance, MixinConstructor) {
+    hasMixin: function (mixInstance, mixin) {
         var Constructor = mixInstance.__Constructor;
         if (Constructor) {
             var mixinsIds = Constructor.__mixinsIds;
             if (mixinsIds) {
-                return mixinsIds.indexOf(MixinConstructor.__cmId) !== -1;
+                return mixinsIds.indexOf(mixin.__mixinId) !== -1;
             }
         }
         return false;
+    },
+
+    /**
+     *
+     * @param {Object} instance
+     * @param {ClassConstructor} ParentClass
+     * @param {*|Array} param
+     * @return {Object} instance
+     */
+    callConstruct: function (instance, ParentClass, param) {
+        var constructor = ParentClass.prototype.construct;
+        if (constructor) {
+            if (isArray(param)) {
+                constructor.apply(instance, param);
+            } else {
+                constructor.call(instance, param);
+            }
+        }
+        return instance;
     }
 };
 
