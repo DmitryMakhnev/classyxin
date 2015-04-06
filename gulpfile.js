@@ -56,30 +56,22 @@ gulp.task('build.bump', function () {
 
 
 
-var commitMessage = 'v' + bowerConfig.version + ' ';
-if (argv.m) {
-    commitMessage += argv.m;
-} else {
-    commitMessage += 'update';
-}
 
 gulp.task('commit', function () {
-    var gitmodified = require("gulp-gitmodified");
+    var version = 'v' + bowerConfig.version;
+    var message;
+
+    var commitMessage = version + ' ';
+    if (argv.m) {
+        message = argv.m;
+        commitMessage += message;
+    } else {
+        commitMessage += 'update';
+    }
+
+    var gitmodified = require('gulp-gitmodified');
     var git = require('gulp-git');
 
-    //var files = gulp.src([
-    //    "./**/*",
-    //    '!./node_modules/**/*',
-    //    '!./bower_components/**/*'
-    //])
-    //.pipe(gitmodified('modified'));
-    //
-    //runSequence(
-    //    function () {
-    //        return files.pipe();
-    //    },
-    //    function () {}
-    //);
     var gulpSRC = gulp.src([
             "./**/*",
             '!./node_modules/**/*',
@@ -89,7 +81,18 @@ gulp.task('commit', function () {
         .pipe(git.add())
         .pipe(git.commit(commitMessage));
 
+    if (argv.t) {
+        if (!message) {
+            message = 'release';
+        }
+        gulpSRC.pipe(
+            git.tag(version, message)
+        )
+    }
 
+    gulpSRC.pipe(
+        git.push('origin', 'master')
+    );
     return gulpSRC;
 });
 
