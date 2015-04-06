@@ -7,6 +7,7 @@ var bowerConfig = require('./bower.json');
 var bump = require('gulp-bump');
 var argv = require('yargs').argv;
 var shell = require('gulp-shell');
+var git = require('gulp-git');
 
 var bumpConfig;
 function createBumpConfig (type) {
@@ -20,6 +21,17 @@ if (argv.v) {
             createBumpConfig(argv.v);
             break;
     }
+}
+
+var packageVersion = 'v' + bowerConfig.version;
+var commitMessageFromArgs;
+var commitMessage = packageVersion + ' ';
+
+if (argv.m) {
+    commitMessageFromArgs = argv.m;
+    commitMessage += commitMessageFromArgs;
+} else {
+    commitMessage += 'update';
 }
 
 
@@ -55,24 +67,11 @@ gulp.task('build.bump', function () {
 });
 
 
-
-
-gulp.task('commit', function () {
-    var version = 'v' + bowerConfig.version;
-    var message;
-
-    var commitMessage = version + ' ';
-    if (argv.m) {
-        message = argv.m;
-        commitMessage += message;
-    } else {
-        commitMessage += 'update';
-    }
+gulp.task('git.commit', function () {
 
     var gitmodified = require('gulp-gitmodified');
-    var git = require('gulp-git');
 
-    var gulpSRC = gulp.src([
+    return gulp.src([
             "./**/*",
             '!./node_modules/**/*',
             '!./bower_components/**/*'
@@ -80,20 +79,28 @@ gulp.task('commit', function () {
         .pipe(gitmodified('modified'))
         .pipe(git.add())
         .pipe(git.commit(commitMessage));
+});
 
-    if (argv.t) {
-        if (!message) {
-            message = 'release';
-        }
-        gulpSRC.pipe(
-            git.tag(version, message)
-        )
+gulp.task('git.tag', function () {
+    if (commitMessageFromArgs) {
+        commitMessage = commitMessageFromArgs;
     }
+    return git.tag(packageVersion, commitMessage);
+});
 
-    gulpSRC.pipe(
-        git.push('origin', 'master')
-    );
-    return gulpSRC;
+gulp.task('git.push', function () {
+    return git.push('origin', 'master');
+});
+
+
+gulp.task('commit', function (callback) {
+    var runSequenceArray = ['git.commit'];
+    if (argv.t) {
+        runSequenceArray.push('git.tag');
+    }
+    runSequenceArray.push('git.push');
+
+    runSequence(runSequenceArray);
 });
 
 
