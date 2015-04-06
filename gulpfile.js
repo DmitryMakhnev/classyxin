@@ -100,7 +100,7 @@ gulp.task('commit', function (callback) {
     }
     runSequenceArray.push('git.push');
 
-    runSequence(runSequenceArray);
+    runSequence.apply(this, runSequenceArray);
 });
 
 
