@@ -61,6 +61,18 @@ var packageVersion;
 var commitMessageFromArgs;
 var commitMessage;
 
+gulp.task('version.read', function (cb) {
+    var fs = require('fs');
+    fs.readFile('./bower.json', function (error, data) {
+        if (error) {
+            return cb(error);
+        }
+        packageVersion = JSON.parse(data.toString()).version;
+
+        cb();
+    });
+});
+
 gulp.task('git.commit', function () {
     var gitmodified = require('gulp-gitmodified');
 
@@ -95,8 +107,12 @@ gulp.task('git.push', function () {
     return git.push('origin', 'master', {args: '--tags'});
 });
 
-function getCommitTasks () {
-    var tasksList = ['git.commit'];
+function getGitTasks () {
+    var tasksList = [
+        'version.read', 
+        'git.commit'
+    ];
+    
     if (argv.t) {
         tasksList.push('git.tag');
     }
@@ -105,7 +121,7 @@ function getCommitTasks () {
 }
 
 gulp.task('commit', function () {
-    return runSequence.apply(this, getCommitTasks());
+    return runSequence.apply(this, getGitTasks());
 });
 
 gulp.task('publish', shell.task([
@@ -114,7 +130,7 @@ gulp.task('publish', shell.task([
 ]));
 
 gulp.task('version', function () {
-    var tasks = [].concat(getBuildTasks(), getCommitTasks(), 'publish');
+    var tasks = [].concat(getBuildTasks(), getGitTasks(), 'publish');
     runSequence.apply(this, tasks);
 });
 
