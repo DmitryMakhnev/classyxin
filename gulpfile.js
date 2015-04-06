@@ -60,6 +60,7 @@ gulp.task('build', function () {
 var packageVersion;
 var commitMessageFromArgs;
 var commitMessage;
+var isVersionTask = false;
 
 gulp.task('version.read', function (cb) {
     var fs = require('fs');
@@ -81,6 +82,8 @@ gulp.task('git.commit', function () {
     if (argv.m) {
         commitMessageFromArgs = argv.m;
         commitMessage += commitMessageFromArgs;
+    } else if (isVersionTask) {
+        commitMessage += 'version';
     } else {
         commitMessage += 'update';
     }
@@ -112,7 +115,7 @@ function getGitTasks () {
         'git.commit'
     ];
     
-    if (argv.t) {
+    if (argv.t || isVersionTask) {
         tasksList.push('git.tag');
     }
     tasksList.push('git.push');
@@ -128,6 +131,7 @@ gulp.task('publish', shell.task([
 ]));
 
 gulp.task('version', function () {
+    isVersionTask = true;
     var tasks = [].concat(getBuildTasks(), getGitTasks(), 'publish');
     runSequence.apply(this, tasks);
 });
