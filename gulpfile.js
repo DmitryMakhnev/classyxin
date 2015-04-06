@@ -89,7 +89,7 @@ gulp.task('git.tag', function () {
 });
 
 gulp.task('git.push', function () {
-    return git.push('origin', 'master');
+    return git.push('origin', 'master', {args: '--tags'});
 });
 
 
