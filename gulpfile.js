@@ -6,6 +6,7 @@ var runSequence = require('gulp-run-sequence');
 var bowerConfig = require('./bower.json');
 var bump = require('gulp-bump');
 var argv = require('yargs').argv;
+var shell = require('gulp-shell');
 
 var bumpConfig;
 function createBumpConfig (type) {
@@ -51,6 +52,45 @@ gulp.task('build.bump', function () {
     return gulp.src(['./bower.json', './package.json'])
         .pipe(bump(bumpConfig))
         .pipe(gulp.dest('./'));
+});
+
+
+
+var commitMessage = 'v' + bowerConfig.version + ' ';
+if (argv.m) {
+    commitMessage += argv.m;
+} else {
+    commitMessage += 'update';
+}
+
+gulp.task('commit', function () {
+    var gitmodified = require("gulp-gitmodified");
+    var git = require('gulp-git');
+
+    //var files = gulp.src([
+    //    "./**/*",
+    //    '!./node_modules/**/*',
+    //    '!./bower_components/**/*'
+    //])
+    //.pipe(gitmodified('modified'));
+    //
+    //runSequence(
+    //    function () {
+    //        return files.pipe();
+    //    },
+    //    function () {}
+    //);
+    var gulpSRC = gulp.src([
+            "./**/*",
+            '!./node_modules/**/*',
+            '!./bower_components/**/*'
+        ])
+        .pipe(gitmodified('modified'))
+        .pipe(git.add())
+        .pipe(git.commit(commitMessage));
+
+
+    return gulpSRC;
 });
 
 
