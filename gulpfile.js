@@ -57,19 +57,22 @@ gulp.task('build', function () {
 });
 
 
-var packageVersion = bowerConfig.version;
+var packageVersion;
 var commitMessageFromArgs;
-var commitMessage = 'v' + packageVersion + ' ';
-
-if (argv.m) {
-    commitMessageFromArgs = argv.m;
-    commitMessage += commitMessageFromArgs;
-} else {
-    commitMessage += 'update';
-}
+var commitMessage;
 
 gulp.task('git.commit', function () {
     var gitmodified = require('gulp-gitmodified');
+
+    packageVersion = bowerConfig.version;
+    commitMessage = 'v' + packageVersion + ' ';
+
+    if (argv.m) {
+        commitMessageFromArgs = argv.m;
+        commitMessage += commitMessageFromArgs;
+    } else {
+        commitMessage += 'update';
+    }
 
     return gulp.src([
             "./**/*",
