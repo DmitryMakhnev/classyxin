@@ -35,16 +35,13 @@ if (argv.m) {
 }
 
 
-gulp.task('build', function (callback) {
-    runSequence(
+gulp.task('build', function () {
+    return runSequence(
         'build.test',
         ['build.dist', 'build.bump']
     );
 });
 
-/**
- * Run test once and exit
- */
 gulp.task('build.test', function (done) {
   karma.start({
     configFile: __dirname + '/karma.conf.js',
@@ -68,7 +65,6 @@ gulp.task('build.bump', function () {
 
 
 gulp.task('git.commit', function () {
-
     var gitmodified = require('gulp-gitmodified');
 
     return gulp.src([
@@ -93,15 +89,18 @@ gulp.task('git.push', function () {
 });
 
 
-gulp.task('commit', function (callback) {
+gulp.task('commit', function () {
     var runSequenceArray = ['git.commit'];
     if (argv.t) {
         runSequenceArray.push('git.tag');
     }
     runSequenceArray.push('git.push');
 
+    return runSequence.apply(this, runSequenceArray);
+});
 
-    runSequence.apply(this, runSequenceArray);
+gulp.task('tg', function () {
+    runSequence('build', 'commit');
 });
 
 

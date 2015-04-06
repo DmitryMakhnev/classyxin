@@ -1,6 +1,6 @@
 {
   "name": "classyxin",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Simple JavaScript classes and mixins library with auto inits and auto destructors",
   "main": "./src/classyxin.js",
   "scripts": {
