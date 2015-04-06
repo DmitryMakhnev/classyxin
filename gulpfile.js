@@ -23,25 +23,6 @@ if (argv.v) {
     }
 }
 
-var packageVersion = bowerConfig.version;
-var commitMessageFromArgs;
-var commitMessage = 'v' + packageVersion + ' ';
-
-if (argv.m) {
-    commitMessageFromArgs = argv.m;
-    commitMessage += commitMessageFromArgs;
-} else {
-    commitMessage += 'update';
-}
-
-
-gulp.task('build', function () {
-    return runSequence(
-        'build.test',
-        ['build.dist', 'build.bump']
-    );
-});
-
 gulp.task('build.test', function (done) {
   karma.start({
     configFile: __dirname + '/karma.conf.js',
@@ -63,6 +44,29 @@ gulp.task('build.bump', function () {
         .pipe(gulp.dest('./'));
 });
 
+
+function getBuildTasks () {
+    return [
+        'build.test',
+        ['build.dist', 'build.bump']
+    ];
+}
+
+gulp.task('build', function () {
+    return runSequence.apply(this, getBuildTasks());
+});
+
+
+var packageVersion = bowerConfig.version;
+var commitMessageFromArgs;
+var commitMessage = 'v' + packageVersion + ' ';
+
+if (argv.m) {
+    commitMessageFromArgs = argv.m;
+    commitMessage += commitMessageFromArgs;
+} else {
+    commitMessage += 'update';
+}
 
 gulp.task('git.commit', function () {
     var gitmodified = require('gulp-gitmodified');
@@ -88,17 +92,28 @@ gulp.task('git.push', function () {
     return git.push('origin', 'master', {args: '--tags'});
 });
 
+function getCommitTasks () {
+    var tasksList = ['git.commit'];
+    if (argv.t) {
+        tasksList.push('git.tag');
+    }
+    tasksList.push('git.push');
+    return tasksList;
+}
 
 gulp.task('commit', function () {
-    var runSequenceArray = ['git.commit'];
-    if (argv.t) {
-        runSequenceArray.push('git.tag');
-    }
-    runSequenceArray.push('git.push');
-
-    return runSequence.apply(this, runSequenceArray);
+    return runSequence.apply(this, getCommitTasks());
 });
 
+gulp.task('publish', shell.task([
+    'npm publish',
+    'bower register ' + bowerConfig.name + ' ' + bowerConfig.repository.url
+]));
+
+gulp.task('version', function () {
+    var tasks = [].concat(getBuildTasks(), getCommitTasks(), 'publish');
+    runSequence.apply(this, tasks);
+});
 
 
 
