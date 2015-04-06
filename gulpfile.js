@@ -23,9 +23,9 @@ if (argv.v) {
     }
 }
 
-var packageVersion = 'v' + bowerConfig.version;
+var packageVersion = bowerConfig.version;
 var commitMessageFromArgs;
-var commitMessage = packageVersion + ' ';
+var commitMessage = 'v' + packageVersion + ' ';
 
 if (argv.m) {
     commitMessageFromArgs = argv.m;
