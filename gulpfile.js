@@ -99,8 +99,6 @@ gulp.task('commit', function () {
     return runSequence.apply(this, runSequenceArray);
 });
 
-gulp.task('tg', function () {
-    runSequence('build', 'commit');
-});
+
 
 

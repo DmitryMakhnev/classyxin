@@ -1,7 +1,7 @@
 {
   "name": "classyxin",
   "description": "Simple JavaScript classes and mixins library with auto inits and auto destructors",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "main": "./src/classyxin.js",
   "dist": "./dist/",
   "license": "MIT",
