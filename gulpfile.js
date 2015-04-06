@@ -124,8 +124,7 @@ gulp.task('commit', function () {
 });
 
 gulp.task('publish', shell.task([
-    'npm publish',
-    'bower register ' + bowerConfig.name + ' ' + bowerConfig.repository.url
+    'npm publish'
 ]));
 
 gulp.task('version', function () {
