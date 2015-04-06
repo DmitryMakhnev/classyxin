@@ -458,6 +458,7 @@ describe('classyxin tests', function () {
         });
 
         var Child = classyxin.createClass(
+            Parent,
             {
                 init: function () {
                     this.counter *= 2;
@@ -465,11 +466,17 @@ describe('classyxin tests', function () {
                 destructor: function () {
                     this.counter /= 2;
                 }
-            },
-            Parent
+            }
         );
 
         var SubChild = classyxin.createClass(
+            classyxin.configureParent(
+                Child,
+                {
+                    needInit: false,
+                    needDestructor: false
+                }
+            ),
             {
                 init: function () {
                     this.counter /= .5;
@@ -477,9 +484,7 @@ describe('classyxin tests', function () {
                 destructor: function () {
                     this.counter *= .5;
                 }
-            },
-            Child,
-            false
+            }
         );
 
         it('single class destructor', function () {
@@ -496,6 +501,7 @@ describe('classyxin tests', function () {
 
         it('chain classes destructor', function () {
             var subInstance = new SubChild();
+            expect(subInstance.counter).toBe(2);
             subInstance.destructor();
             expect(subInstance.counter).toBe(0);
         });

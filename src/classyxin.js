@@ -248,7 +248,7 @@ function createClass () {
         //check need parent init
         if (parent.prototype.init
             && parentSettings
-            && !parentSettings.needInit) {
+            && (parentSettings.needInit === false)) {
             inits.pop();
         }
 
@@ -260,6 +260,13 @@ function createClass () {
         //add parent destructors
         if (parent.__destructors) {
             mergeArrays(parent.__destructors, destructors);
+        }
+
+        //check need parent init
+        if (parent.prototype.destructor
+            && parentSettings
+            && (parentSettings.needDestructor === false)) {
+            destructors.pop();
         }
 
 
