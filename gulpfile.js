@@ -76,7 +76,6 @@ gulp.task('version.read', function (cb) {
 gulp.task('git.commit', function () {
     var gitmodified = require('gulp-gitmodified');
 
-    packageVersion = bowerConfig.version;
     commitMessage = 'v' + packageVersion + ' ';
 
     if (argv.m) {
