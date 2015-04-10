@@ -199,167 +199,6 @@ function isClassPrototype (verifiable) {
         && !isMixin(verifiable);
 }
 
-
-///**
-// *
-// * @param {Object} [prototypePart]
-// * @param {ClassConstructor} [ParentConstructor]
-// * @param {Boolean} [isNeedInitParent]
-// * @return {ClassConstructor}
-// */
-function createClass () {
-
-    //parse arguments
-    var args = arguments;
-    var classPrototype;
-    var lastArgument;
-
-    if (args.length > 0) {
-        lastArgument = args[args.length - 1];
-
-        if (isClassPrototype(lastArgument)) {
-            classPrototype = lastArgument;
-        }
-    }
-
-    var prototypeExtend;
-    var prototypeExtendPart = null;
-
-    var classesIds = [];
-    var mixinsIds = [];
-    var inits = [];
-    var destructors = [];
-
-    function processingParent (parent, parentSettings) {
-        //add parent parents ids
-        if (parent.__classesIds) {
-            mergeArrays(parent.__classesIds, classesIds);
-        }
-        //add parent id
-        if (parent.__cmId) {
-            classesIds.push(parent.__cmId);
-        }
-
-        //add parent inits
-        if (parent.__inits) {
-            mergeArrays(parent.__inits, inits);
-        }
-
-        //check need parent init
-        if (parent.prototype.init
-            && parentSettings
-            && (parentSettings.needInit === false)) {
-            inits.pop();
-        }
-
-        //add parent mixins ids
-        if (parent.__mixinsIds) {
-            mergeArrays(parent.__mixinsIds, mixinsIds);
-        }
-        
-        //add parent destructors
-        if (parent.__destructors) {
-            mergeArrays(parent.__destructors, destructors);
-        }
-
-        //check need parent init
-        if (parent.prototype.destructor
-            && parentSettings
-            && (parentSettings.needDestructor === false)) {
-            destructors.pop();
-        }
-
-
-        prototypeExtendPart = parent.prototype;
-    }
-
-    var i;
-    var iMax;
-    var argument;
-
-    for (i = 0, iMax = args.length; i < iMax; i += 1) {
-        argument = args[i];
-        
-        if (isParent(argument)) {
-            processingParent(argument);
-
-        } else if (isParentConfiguration(argument)) {
-            processingParent(argument.parent, argument.settings);
-            if (!argument.notAutoDestruct) {
-                argument.destructor();
-            }
-
-        } else if (isMixin(argument)) {
-            mixinsIds.push(argument.__mixinId);
-            prototypeExtendPart = argument.base;
-        }
-
-        if (prototypeExtendPart) {
-            if (!prototypeExtend) {
-                prototypeExtend = {};
-            }
-
-            mergeObject(
-                prototypeExtendPart, 
-                prototypeExtend, 
-                mergePrototypesFilter
-            );
-
-            prototypeExtendPart = null;
-        }
-    }
-
-    //processing prototype
-    if (prototypeExtend) {
-        if (classPrototype) {
-            mergeObject(classPrototype, prototypeExtend);
-        }
-        classPrototype = prototypeExtend;
-    }
-
-    //create class constructor
-    var ClassConstructor = createClassConstructor();
-
-    if (classPrototype) {
-        ClassConstructor.prototype = classPrototype;
-    }
-
-    var ClassConstructorPrototype = ClassConstructor.prototype;
-
-    ClassConstructorPrototype.__Constructor = ClassConstructor;
-
-    //extend class data from class
-    classesIds.push(ClassConstructor.__cmId);
-    
-    if (ClassConstructorPrototype.destructor) {
-        destructors.push(ClassConstructorPrototype.destructor);
-    }
-    
-    if (ClassConstructorPrototype.init) {
-        inits.push(ClassConstructorPrototype.init);
-    }
-    
-    //extend class constructors
-    ClassConstructor.__classesIds = classesIds;
-    
-    if (collectionContainsElements(mixinsIds)) {
-        ClassConstructor.__mixinsIds = mixinsIds;    
-    }
-    
-    if (collectionContainsElements(inits)) {
-        ClassConstructor.__inits = inits;
-    }
-
-    if (collectionContainsElements(destructors)) {
-        ClassConstructor.__destructors = destructors;
-    }
-    
-
-    ClassConstructorPrototype.destructor = commonDestructor;
-
-    return ClassConstructor;
-}
-
 var classyxin = {
     /**
      *
@@ -395,12 +234,164 @@ var classyxin = {
 
     /**
      *
+     * @param {ClassConstructor} [ParentConstructor...]
+     * @param {ParentConfigurator} [ParentConfigurator...]
+     * @param {Mixin} [Mixin...]
      * @param {Object} [prototypePart]
-     * @param {ClassConstructor} [ParentConstructor]
-     * @param {Boolean} [isNeedInitParent]
      * @return {ClassConstructor}
      */
-    createClass: createClass,
+    createClass: function () {
+
+        //parse arguments
+        var args = arguments;
+        var classPrototype;
+        var lastArgument;
+
+        if (args.length > 0) {
+            lastArgument = args[args.length - 1];
+
+            if (isClassPrototype(lastArgument)) {
+                classPrototype = lastArgument;
+            }
+        }
+
+        var prototypeExtend;
+        var prototypeExtendPart = null;
+
+        var classesIds = [];
+        var mixinsIds = [];
+        var inits = [];
+        var destructors = [];
+
+        function processingParent (parent, parentSettings) {
+            //add parent parents ids
+            if (parent.__classesIds) {
+                mergeArrays(parent.__classesIds, classesIds);
+            }
+            //add parent id
+            if (parent.__cmId) {
+                classesIds.push(parent.__cmId);
+            }
+
+            //add parent inits
+            if (parent.__inits) {
+                mergeArrays(parent.__inits, inits);
+            }
+
+            //check need parent init
+            if (parent.prototype.init
+                && parentSettings
+                && (parentSettings.needInit === false)) {
+                inits.pop();
+            }
+
+            //add parent mixins ids
+            if (parent.__mixinsIds) {
+                mergeArrays(parent.__mixinsIds, mixinsIds);
+            }
+
+            //add parent destructors
+            if (parent.__destructors) {
+                mergeArrays(parent.__destructors, destructors);
+            }
+
+            //check need parent init
+            if (parent.prototype.destructor
+                && parentSettings
+                && (parentSettings.needDestructor === false)) {
+                destructors.pop();
+            }
+
+
+            prototypeExtendPart = parent.prototype;
+        }
+
+        var i;
+        var iMax;
+        var argument;
+
+        for (i = 0, iMax = args.length; i < iMax; i += 1) {
+            argument = args[i];
+
+            if (isParent(argument)) {
+                processingParent(argument);
+
+            } else if (isParentConfiguration(argument)) {
+                processingParent(argument.parent, argument.settings);
+                if (!argument.notAutoDestruct) {
+                    argument.destructor();
+                }
+
+            } else if (isMixin(argument)) {
+                mixinsIds.push(argument.__mixinId);
+                prototypeExtendPart = argument.base;
+            }
+
+            if (prototypeExtendPart) {
+                if (!prototypeExtend) {
+                    prototypeExtend = {};
+                }
+
+                mergeObject(
+                    prototypeExtendPart,
+                    prototypeExtend,
+                    mergePrototypesFilter
+                );
+
+                prototypeExtendPart = null;
+            }
+        }
+
+        //processing prototype
+        if (prototypeExtend) {
+            if (classPrototype) {
+                mergeObject(classPrototype, prototypeExtend);
+            }
+            classPrototype = prototypeExtend;
+        }
+
+        //create class constructor
+        var ClassConstructor = createClassConstructor();
+
+        if (classPrototype) {
+            ClassConstructor.prototype = classPrototype;
+        }
+
+        var ClassConstructorPrototype = ClassConstructor.prototype;
+
+        ClassConstructorPrototype.__Constructor = ClassConstructor;
+
+        //extend class data from class
+        classesIds.push(ClassConstructor.__cmId);
+
+        if (ClassConstructorPrototype.destructor) {
+            destructors.push(ClassConstructorPrototype.destructor);
+        }
+
+        if (ClassConstructorPrototype.init) {
+            inits.push(ClassConstructorPrototype.init);
+        }
+
+        //extend class constructors
+        ClassConstructor.__classesIds = classesIds;
+
+        if (collectionContainsElements(mixinsIds)) {
+            ClassConstructor.__mixinsIds = mixinsIds;
+        }
+
+        if (collectionContainsElements(inits)) {
+            ClassConstructor.__inits = inits;
+        }
+
+        if (collectionContainsElements(destructors)) {
+            ClassConstructor.__destructors = destructors;
+        }
+
+
+        ClassConstructorPrototype.destructor = commonDestructor;
+
+        return ClassConstructor;
+    },
 
     /**
      *
@@ -440,7 +431,7 @@ var classyxin = {
      *
      * @param {Object} instance
      * @param {ClassConstructor} ParentClass
-     * @param {*|Array} param
+     * @param {*|Array} [param...]
      * @return {Object} instance
      */
     callConstruct: function (instance, ParentClass, param) {
