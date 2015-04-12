@@ -111,7 +111,7 @@ barInstance.method2();
 barInstance.prop; //abcde
 ```
 
-#### Inheritance chain #### 
+#### Inheritance chain 
 
 ```javascript
 var classyxin = require('classyxin');
