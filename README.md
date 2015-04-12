@@ -10,13 +10,17 @@ Getting Started
 
 You can install using Node Package Manager (npm):
 
-`npm install classyxin --save`
+``` sh
+npm install classyxin --save
+```
 
 ### In Browsers ###
 
 Compressed file saved in `/dist/classyxin.js` and packed with webpack as UMD module. Global var in UMD is `classyxin`
 
-`bower install classyxin --save`
+``` sh
+bower install classyxin --save
+```
 
 ```html
 <script type="text/javascript" src="bower_components/classyxin/dist/classyxin.js"></script>
