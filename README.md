@@ -435,6 +435,7 @@ bazInstance.prop; //abcdefgh
 
 ###Inits arguments
 
+```javascript
 var classyxin = require('classyxin');
 
 var Foo = classyxin.createClass(
@@ -467,7 +468,7 @@ var Baz = classyxin.createClass(
 
 var bazInstance = new Baz('z', 'x');
 bazInstance.prop; //abzxczxdzx
-
+```
 
 API
 -----
