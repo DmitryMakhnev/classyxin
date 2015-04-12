@@ -74,7 +74,7 @@ fooInstance.prop; //2
 
 ### Creating a Class with inheritance ###
 
-#### Single inheritance ####
+#### Single inheritance
 
 ```javascript
 var classyxin = require('classyxin');
@@ -146,7 +146,7 @@ var bazInstance = new Baz();
 bazInstance.prop; //abcd
 ```
 
-#### Multiple inheritance #### 
+#### Multiple inheritance 
 
 ```javascript
 var classyxin = require('classyxin');
@@ -182,7 +182,7 @@ bazInstance.prop; //abcd
 ```
 
 
-#### Inheritance with parent configuration ####
+#### Inheritance with parent configuration
 
 ```javascript
 
