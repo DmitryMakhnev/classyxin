@@ -4,16 +4,16 @@ var index = 1;
 
 /**
  *
- * @param {Object} objectForm
+ * @param {Object} objectFrom
  * @param {Object} objectTo
  * @param {Function} [filter]
  * @return {Object} objectTo
  */
-function mergeObject (objectForm, objectTo, filter) {
-    for (var p in objectForm) {
-        if (objectForm.hasOwnProperty(p)
+function mergeObject (objectFrom, objectTo, filter) {
+    for (var p in objectFrom) {
+        if (objectFrom.hasOwnProperty(p)
             && (!filter || filter(p))) {
-            objectTo[p] = objectForm[p];
+            objectTo[p] = objectFrom[p];
         }
     }
     return objectTo
