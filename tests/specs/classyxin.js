@@ -152,6 +152,8 @@ describe('classyxin tests', function () {
 
                 var Child;
                 var childInstance;
+                
+                var SomeClass = classyxin.createClass();
 
                 describe('Child', function () {
                     it('create', function () {
@@ -190,6 +192,14 @@ describe('classyxin tests', function () {
 
                     it('instance of Child', function () {
                         expect(classyxin.instanceOf(childInstance, Child)).toBeTruthy();
+                    });
+                    
+                    it('childInstance not instance of SomeClass', function () {
+                        expect(classyxin.instanceOf(childInstance, SomeClass)).toBeFalsy();
+                    });
+                    
+                    it('{} not instance of Child', function () {
+                        expect(classyxin.instanceOf({}, Child)).toBeFalsy();
                     });
 
                 });
@@ -278,6 +288,8 @@ describe('classyxin tests', function () {
                 );
 
                 var childClassInstance = new ChildClass();
+                
+                var someMixin = classyxin.createMixin({});
 
                 it('has mixin method', function () {
                     expect(childClassInstance.mixinMethod).toEqual(jasmine.any(Function));
@@ -293,6 +305,14 @@ describe('classyxin tests', function () {
 
                 it('hasMixin', function () {
                     expect(classyxin.hasMixin(childClassInstance, mixin)).toBeTruthy();
+                });
+                
+                it('childInstance has not someMixin', function () {
+                    expect(classyxin.hasMixin(childClassInstance, someMixin)).toBeFalsy();
+                });
+
+                it('{} has not someMixin', function () {
+                    expect(classyxin.hasMixin({}, someMixin)).toBeFalsy();
                 });
 
             });
