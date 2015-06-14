@@ -16,7 +16,7 @@ npm install classyxin --save
 
 ### In Browsers ###
 
-Compressed file saved in `/dist/classyxin.js` and packed with webpack as UMD module. Global var in UMD is `classyxin`
+Compressed file saved in `/dist/classyxin.js` and packed with webpack as the UMD module. Global var is `classyxin` in UMD
 
 ``` sh
 bower install classyxin --save
@@ -42,7 +42,7 @@ var Foo = classyxin.createClass({
     method: function () {
         this.prop += 1;
     },
-    //call auto then new Foo and save in auto inits chain for inheritance 
+    //is called auto when new Foo() is called and is saved in auto inits chain for inheritance 
     init: function () {
         this.prop += 1;
     }
@@ -64,7 +64,7 @@ var Foo = classyxin.createClass({
     method: function () {
         this.prop += 1;
     },
-    //call auto then new Foo and not save in auto inits chain for inheritance 
+    //is called auto when new Foo is called and isn't saved in auto inits chain for inheritance 
     construct: function () {
         this.prop += 1;
     }
@@ -229,7 +229,7 @@ bazInstance.prop; //acd
 
 ### Creating a Class with mixin ###
 
-Use mixins for share properties in some classes
+Use mixins to share properties in some classes
 
 ```javascript
 var classyxin = require('classyxin');
@@ -269,7 +269,7 @@ var barInstance = new Bar();
 barInstance.prop; //acc
 ```
 
-###You can create any combo for createClass()
+###You can create any combination for createClass()
 
 ```javascript
 var classyxin = require('classyxin');
@@ -328,7 +328,7 @@ bazInstance.prop; //abzx_m1_m2dzx
 ```
 
 
-### Check instanceOf###
+### Checking instanceOf###
 
 ```javascript
 var classyxin = require('classyxin');
@@ -359,7 +359,7 @@ classyxin.instanceOf(barInstance, Bar);//true
 classyxin.instanceOf(barInstance, Foo);//true
 ```
 
-### Check has mixin###
+### Checking if instance includes a mixin###
 
 ```javascript
 var classyxin = require('classyxin');
@@ -398,7 +398,7 @@ barInstance.prop; //abccd
 classyxin.hasMixin(barInstance, mixin);//true
 ```
 
-###Call parent construct###
+###To call parent construct###
 
 ```javascript
 var classyxin = require('classyxin');
@@ -480,22 +480,22 @@ API
 ###Main methods
 
 ####createClass([ClassConstructor...], [ParentConfigurator...], [Mixin...], [Object Prototype])
-Main method for create classes
+Main method to create classes
 
 ####configureParent(ClassConstructor, Object settings)
 Configure parent for inheritance  
 
 ####createMixin(Object) 
-Method for create mixins 
+Method to create mixins 
 
 ####instanceOf(instance, ClassConstructor)
-Check instanceOf
+Checking instanceOf
 
 ####hasMixin(instance, Mixin)
-Check hasMixin
+Checking if instance includes a mixin
 
 ####callConstruct(instance, ParentClassConstructor, [*...|Array])
-Call instance for parent class constructor
+Calling a parent class constructor in an instance
 
 ###Some open parts
 
